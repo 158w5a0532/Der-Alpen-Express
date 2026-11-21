@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<title>Der Alpen-Express — Die große Grammatik-Bahn</title>
+<style>
+  :root {
+    --wood-dark: #3e2212;
+    --wood-mid: #6b3e22;
+    --wood-light: #a66a3c;
+    --brass: #f2b749;
+    --cream: #fffaf0;
+    --ink: #1e293b;
+    --muted: #64748b;
+    --der: #1d4ed8;
+    --die: #be123c;
+    --das: #15803d;
+    --ok: #15803d;
+    --ok-bg: #dcfce7;
+    --err: #b91c1c;
+    --err-bg: #fee2e2;
+    --gold: #d97706;
+    --panel-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f2942 100%);
+    color: var(--ink);
+    user-select: none;
+  }
+
+  /* ===== APP SHELL (4-ZONE RESPONSIVE) ===== */
+  #app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    margin: 0 auto;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+    background: #87ceeb;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Zone 1: Top HUD */
+  .hud {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: #fff;
+    border-bottom: 2px solid var(--brass);
+    z-index: 10;
+  }
+
+  .hud-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .route-pill {
+    background: rgba(242, 183, 73, 0.16);
+    border: 1px solid rgba(242, 183, 73, 0.55);
+    color: #fde68a;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 135px;
+  }
+
+  .stat-chip {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .hud-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .hud-btn {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-radius: 10px;
+    padding: 6px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
+  }
+
+  .hud-btn .lbl { display: none; }
+  .hud-btn.active { background: #1e40af; border-color: #93c5fd; }
+
+  /* Main play area wrapper (allows landscape split) */
+  .play-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stage-col {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Zone 2: Station Signboard */
+  .signboard-wrap {
+    flex: 0 0 auto;
+    padding: 8px 10px 4px;
+    z-index: 5;
+    position: relative;
+  }
+
+  .signboard {
+    background: var(--cream);
+    border: 3px solid var(--wood-dark);
+    box-shadow: inset 0 0 0 2px var(--brass), 0 5px 14px rgba(15, 23, 42, 0.22);
+    border-radius: 14px;
+    padding: 10px 12px;
+    text-align: center;
+    position: relative;
+  }
+
+  .sign-tag {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #92400e;
+    margin-bottom: 4px;
+  }
+
+  .sign-prompt {
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.32;
+    color: #0f172a;
+    word-wrap: break-word;
+  }
+
+  .sign-sub {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: #475569;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .blank-slot {
+    display: inline-block;
+    min-width: 64px;
+    padding: 0 8px;
+    margin: 0 2px;
+    border-bottom: 3px solid #d97706;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 6px;
+    font-weight: 900;
+  }
+
+  .art-der { color: var(--der); font-weight: 900; }
+  .art-die { color: var(--die); font-weight: 900; }
+  .art-das { color: var(--das); font-weight: 900; }
+
+  .concept-bar {
+    display: flex;
+    justify-content: center;
+    margin-top: 6px;
+  }
+
+  .concept-btn {
+    border: 2px solid #f59e0b;
+    background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+    color: #78350f;
+    border-radius: 999px;
+    padding: 5px 13px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(120, 53, 15, 0.16);
+  }
+
+  .keycap {
+    display: none;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(15, 23, 42, 0.2);
+  }
+
+  /* Zone 3: Railway Canvas */
+  .canvas-wrap {
+    flex: 1 1 auto;
+    min-height: 110px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Zone 4: Wooden Cargo Crate Dock */
+  .dock-col {
+    flex: 0 0 auto;
+    background: linear-gradient(180deg, #5c3a21 0%, #3d2413 100%);
+    border-top: 3px solid #2b180c;
+    padding: 10px 10px 12px;
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.12);
+    z-index: 6;
+  }
+
+  .dock-concept-slot { display: none; margin-bottom: 8px; }
+
+  .crate-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .crate-btn {
+    position: relative;
+    min-height: 60px;
+    padding: 10px 10px;
+    border-radius: 12px;
+    border: 3px solid #4a2810;
+    background: linear-gradient(180deg, #deb074 0%, #c68b47 55%, #b17332 100%);
+    box-shadow: inset 0 2px 0 rgba(255, 245, 220, 0.45), 0 4px 0 #3b1e0a;
+    color: #231105;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.2;
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-word;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+
+  .crate-btn:active {
+    transform: translateY(2px);
+    box-shadow: inset 0 2px 0 rgba(255, 245, 220, 0.35), 0 2px 0 #3b1e0a;
+  }
+
+  .crate-btn:disabled { opacity: 0.65; cursor: default; }
+  .crate-btn.picked-ok { background: linear-gradient(180deg, #86efac 0%, #22c55e 100%); border-color: #14532d; color: #052e16; }
+  .crate-btn.picked-err { background: linear-gradient(180deg, #fca5a5 0%, #ef4444 100%); border-color: #7f1d1d; color: #fff; }
+
+  .crate-key {
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 6px;
+    font-size: 10px;
+    font-weight: 900;
+    background: rgba(35, 17, 5, 0.16);
+    border: 1px solid rgba(35, 17, 5, 0.25);
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+
+  /* ===== MODALS (BOTTOM-SHEET ON PHONE, CENTERED ON IPAD/LAPTOP) ===== */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.66);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+    padding: 0;
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal-card {
+    width: 100%;
+    max-width: 680px;
+    max-height: 90dvh;
+    background: #fffdf8;
+    border-radius: 20px 20px 0 0;
+    border-top: 4px solid var(--brass);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 -10px 35px rgba(15, 23, 42, 0.4);
+  }
+
+  .modal-head {
+    flex: 0 0 auto;
+    padding: 14px 16px;
+    background: #1e293b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .modal-head.ok-head { background: linear-gradient(90deg, #14532d, #166534); }
+  .modal-head.err-head { background: linear-gradient(90deg, #7f1d1d, #991b1b); }
+  .modal-head.tip-head { background: linear-gradient(90deg, #78350f, #92400e); }
+
+  .modal-title { font-size: 16px; font-weight: 900; margin: 0; }
+  .modal-subtitle { font-size: 12px; opacity: 0.88; margin-top: 2px; }
+
+  .close-x {
+    background: rgba(255, 255, 255, 0.16);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .modal-foot {
+    flex: 0 0 auto;
+    padding: 12px 16px calc(12px + var(--safe-bottom));
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn-primary {
+    flex: 1 1 auto;
+    background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .btn-gold {
+    flex: 1 1 auto;
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .btn-ghost {
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  /* ===== LEARNING & FEEDBACK CARDS ===== */
+  .section-box {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .section-box.examples { border-color: #fde68a; background: #fffbeb; }
+  .section-box.shortcut { border-color: #bae6fd; background: #f0f9ff; }
+  .section-box.compare { border-color: #e2e8f0; background: #f8fafc; }
+
+  .box-label {
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+    color: #334155;
+  }
+
+  .ex-item {
+    background: #fff;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+
+  .ex-item:last-child { margin-bottom: 0; }
+  .ex-de { font-weight: 800; color: #0f172a; font-size: 14.5px; }
+  .ex-en { font-size: 12.5px; color: #475569; margin-top: 2px; }
+  .hl { background: #fef08a; padding: 1px 4px; border-radius: 4px; font-weight: 900; color: #78350f; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .cmp-card {
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .cmp-card.wrong { background: var(--err-bg); border: 1.5px solid #fca5a5; color: #7f1d1d; }
+  .cmp-card.right { background: var(--ok-bg); border: 1.5px solid #86efac; color: #14532d; }
+  .cmp-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
+  .cmp-val { font-size: 16px; font-weight: 900; margin-top: 3px; }
+
+  .trigger-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .trig-nom { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+  .trig-akk { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .trig-dat { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+  .trig-ns  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+  .wagon-diagram {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #f1f5f9;
+    border: 1.5px dashed #94a3b8;
+    border-radius: 10px;
+  }
+
+  .wagon-car {
+    background: #fff;
+    border: 1.5px solid #64748b;
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 12.5px;
+    font-weight: 800;
+  }
+
+  .wagon-caboose {
+    background: #dc2626;
+    border: 1.5px solid #7f1d1d;
+    color: #fff;
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 12.5px;
+    font-weight: 900;
+  }
+
+  .audio-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .audio-btn {
+    border: 1.5px solid #93c5fd;
+    background: #eff6ff;
+    color: #1e3a8a;
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .speed-btn {
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  /* Route picker & passport */
+  .passport-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+
+  .part-title {
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #1e40af;
+    margin: 10px 0 6px;
+  }
+
+  .route-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .route-card {
+    text-align: left;
+    border: 2px solid #cbd5e1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .route-card.selected {
+    border-color: #1d4ed8;
+    background: #eff6ff;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2);
+  }
+
+  .route-name { font-size: 14px; font-weight: 900; color: #0f172a; }
+  .route-desc { font-size: 12px; color: #475569; margin-top: 2px; }
+  .route-stamp { font-size: 18px; flex-shrink: 0; }
+
+  /* Grammar handbook tabs */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    border: 1.5px solid #cbd5e1;
+    background: #f1f5f9;
+    color: #334155;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .tab-btn.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+
+  .g-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 6px;
+  }
+
+  .g-table th, .g-table td {
+    border: 1px solid #cbd5e1;
+    padding: 6px 7px;
+    text-align: left;
+  }
+
+  .g-table th { background: #e2e8f0; font-weight: 800; }
+
+  /* ===== PHONE LANDSCAPE (2-COLUMN SPLIT) ===== */
+  @media (max-height: 520px) and (orientation: landscape) {
+    .hud { padding: 5px 10px; }
+    .play-shell { flex-direction: row; }
+    .stage-col { flex: 1 1 58%; min-width: 0; }
+    .dock-col {
+      flex: 0 0 42%;
+      border-top: none;
+      border-left: 3px solid #2b180c;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px;
+    }
+    .signboard-wrap { padding: 6px 8px 2px; }
+    .signboard { padding: 7px 10px; }
+    .sign-prompt { font-size: 15px; }
+    .sign-sub { font-size: 11.5px; }
+    .signboard .concept-bar { display: none; }
+    .dock-concept-slot { display: flex; justify-content: center; }
+    .crate-btn { min-height: 50px; font-size: 13.5px; padding: 6px; }
+  }
+
+  /* ===== IPAD PORTRAIT (640px - 1023px) ===== */
+  @media (min-width: 640px) {
+    .hud-btn .lbl { display: inline; }
+    .route-pill { max-width: 240px; font-size: 13px; }
+    .sign-prompt { font-size: 20px; }
+    .sign-sub { font-size: 14px; }
+    .crate-btn { min-height: 68px; font-size: 17px; }
+    .route-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .modal-backdrop { align-items: center; padding: 18px; }
+    .modal-card { border-radius: 20px; border: 3px solid var(--brass); max-height: 86dvh; }
+    .modal-foot { padding: 12px 16px; }
+  }
+
+  @media (min-width: 640px) and (max-width: 1023px) {
+    #app { max-width: 820px; box-shadow: 0 0 40px rgba(0, 0, 0, 0.45); }
+  }
+
+  /* ===== IPAD LANDSCAPE & LAPTOP (>=1024px) ===== */
+  @media (min-width: 1024px) {
+    #app {
+      max-width: 1160px;
+      height: calc(100dvh - 20px);
+      margin-top: 10px;
+      border-radius: 18px;
+      border: 2px solid rgba(242, 183, 73, 0.45);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    }
+    .signboard { max-width: 820px; margin: 0 auto; padding: 12px 18px; }
+    .sign-prompt { font-size: 22px; }
+    .crate-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; max-width: 1040px; margin: 0 auto; }
+    .crate-btn { min-height: 74px; font-size: 17px; }
+    .crate-key, .keycap { display: inline-block; }
+  }
+
+  /* ===== TOUCH-SAFE HOVER ISOLATION ===== */
+  @media (hover: hover) and (pointer: fine) {
+    .hud-btn:hover { background: rgba(255, 255, 255, 0.24); }
+    .concept-btn:hover { filter: brightness(0.97); }
+    .crate-btn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.04); }
+    .route-card:hover { border-color: #60a5fa; }
+    .btn-primary:hover, .btn-gold:hover { filter: brightness(1.07); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ZONE 1: TOP HUD -->
+  <header class="hud">
+    <div class="hud-left">
+      <span id="hud-route" class="route-pill">1. Talbahnhof</span>
+      <span id="hud-progress" class="stat-chip">🚂 0/8</span>
+      <span id="hud-stars" class="stat-chip">⭐ 0</span>
+    </div>
+    <div class="hud-right">
+      <button id="btn-artikel" class="hud-btn active" title="Toggle der/die/das on signboard">🏷️ <span class="lbl">Artikel: AN</span></button>
+      <button id="btn-handbook" class="hud-btn" title="Grammar Reference">📖 <span class="lbl">Grammatik</span></button>
+      <button id="btn-sound" class="hud-btn active" title="Toggle Sound">🔊 <span class="lbl">Sound</span></button>
+      <button id="btn-routes" class="hud-btn" title="Routes & Passport">🗺️ <span class="lbl">Routes</span></button>
+    </div>
+  </header>
+
+  <!-- PLAY SHELL -->
+  <main class="play-shell">
+    <section class="stage-col">
+      <!-- ZONE 2: STATION SIGNBOARD -->
+      <div class="signboard-wrap">
+        <div class="signboard">
+          <div id="sign-tag" class="sign-tag">Possessivartikel · Nominativ</div>
+          <div id="sign-prompt" class="sign-prompt">Loading station...</div>
+          <div id="sign-sub" class="sign-sub"></div>
+          <div class="concept-bar">
+            <button id="btn-concept-main" class="concept-btn">💡 Learn Concept <span class="keycap">H</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZONE 3: ILLUSTRATED 2D RAILWAY CANVAS -->
+      <div class="canvas-wrap">
+        <canvas id="game-canvas"></canvas>
+      </div>
+    </section>
+
+    <!-- ZONE 4: WOODEN CARGO CRATES -->
+    <section class="dock-col">
+      <div class="dock-concept-slot">
+        <button id="btn-concept-side" class="concept-btn">💡 Learn Concept <span class="keycap">H</span></button>
+      </div>
+      <div id="crate-grid" class="crate-grid"></div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL: START / ROUTE PICKER -->
+<div id="modal-start" class="modal-backdrop open">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title">🚂 Der Alpen-Express</h2>
+        <div class="modal-subtitle">Die große A1–A2 Grammatik-Bahn · Pick a route &amp; load the cargo!</div>
+      </div>
+      <button class="close-x" data-close="modal-start" title="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="passport-strip">
+        <div id="passport-metrics">🎫 Routes: 0/8 · ⭐ Solo Stars: 0 · 🎯 Weak Spots: 0</div>
+        <button id="btn-commute-mix" class="btn-gold" style="flex:0 0 auto; padding:7px 12px; font-size:12.5px;">⚡ 3-Min Commute Mix</button>
+      </div>
+      <div class="part-title">Part 1 · Artikelwörter &amp; Pronomen (Nom · Akk · Dat)</div>
+      <div id="routes-part1" class="route-grid"></div>
+      <div class="part-title">Part 2 · Nebensätze &amp; Satzbau (85 Handcrafted Sentences)</div>
+      <div id="routes-part2" class="route-grid"></div>
+    </div>
+    <div class="modal-foot">
+      <button id="btn-start-journey" class="btn-primary">Start Selected Journey 🚂</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LEARN CONCEPT (BEFORE ANSWERING) -->
+<div id="modal-concept" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-head tip-head">
+      <div>
+        <h2 id="concept-title" class="modal-title">💡 Learn Concept</h2>
+        <div class="modal-subtitle">Zero penalty — understand the pattern with simple examples first!</div>
+      </div>
+      <button class="close-x" data-close="modal-concept">✕</button>
+    </div>
+    <div id="concept-body" class="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-primary" data-close="modal-concept">Got it — Back to Crate! 🚂</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: POST-ANSWER FEEDBACK (BOTH RIGHT & WRONG) -->
+<div id="modal-feedback" class="modal-backdrop">
+  <div class="modal-card">
+    <div id="fb-head" class="modal-head ok-head">
+      <div>
+        <h2 id="fb-title" class="modal-title">✅ Crate Loaded!</h2>
+        <div id="fb-sub" class="modal-subtitle"></div>
+      </div>
+    </div>
+    <div id="fb-body" class="modal-body"></div>
+    <div class="modal-foot">
+      <button id="btn-fb-next" class="btn-primary">Next Stop →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ROUTE COMPLETE -->
+<div id="modal-complete" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-head ok-head">
+      <div>
+        <h2 class="modal-title">🎉 Endstation erreicht!</h2>
+        <div id="complete-sub" class="modal-subtitle">Route Complete!</div>
+      </div>
+    </div>
+    <div id="complete-body" class="modal-body"></div>
+    <div class="modal-foot">
+      <button id="btn-replay-route" class="btn-ghost">Replay Route</button>
+      <button id="btn-next-route" class="btn-primary">Choose Next Route 🗺️</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 5-TAB GRAMMATIK HANDBOOK -->
+<div id="modal-handbook" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title">📖 Grammatik-Handbuch</h2>
+        <div class="modal-subtitle">Quick A1–A2 cheat sheets</div>
+      </div>
+      <button class="close-x" data-close="modal-handbook">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="hb-tabs" class="tab-bar"></div>
+      <div id="hb-content"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-primary" data-close="modal-handbook">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* =========================================================
+     1. CURRICULUM DATA (PART 1 DYNAMIC + PART 2 85 HANDCRAFTED)
+  ========================================================= */
+  const PRONOUNS = [
+    { key: 'ich', label: 'ich (I)', base: 'mein', en: 'my', akk: 'mich', dat: 'mir', akkEn: 'me', datEn: 'to/with me' },
+    { key: 'du', label: 'du (you)', base: 'dein', en: 'your', akk: 'dich', dat: 'dir', akkEn: 'you', datEn: 'to/with you' },
+    { key: 'er', label: 'er (he)', base: 'sein', en: 'his', akk: 'ihn', dat: 'ihm', akkEn: 'him', datEn: 'to/with him' },
+    { key: 'sie_s', label: 'sie (she)', base: 'ihr', en: 'her', akk: 'sie', dat: 'ihr', akkEn: 'her', datEn: 'to/with her' },
+    { key: 'es', label: 'es (it)', base: 'sein', en: 'its', akk: 'es', dat: 'ihm', akkEn: 'it', datEn: 'to/with it' },
+    { key: 'wir', label: 'wir (we)', base: 'unser', en: 'our', akk: 'uns', dat: 'uns', akkEn: 'us', datEn: 'to/with us' },
+    { key: 'ihr', label: 'ihr (you - plural)', base: 'euer', en: 'your (pl.)', akk: 'euch', dat: 'euch', akkEn: 'you all', datEn: 'to/with you all' },
+    { key: 'sie_p', label: 'sie (they)', base: 'ihr', en: 'their', akk: 'sie', dat: 'ihnen', akkEn: 'them', datEn: 'to/with them' },
+    { key: 'Sie', label: 'Sie (you - formal)', base: 'Ihr', en: 'your (formal)', akk: 'Sie', dat: 'Ihnen', akkEn: 'you (formal)', datEn: 'to/with you (formal)' }
+  ];
+
+  const NOUNS = [
+    { w: 'Vater', art: 'der', g: 'm', en: 'father', tip: 'Male family members (Vater, Bruder, Onkel) are always der.' },
+    { w: 'Koffer', art: 'der', g: 'm', en: 'suitcase', tip: 'Many nouns ending in -er (Koffer, Computer, Lehrer) are der.' },
+    { w: 'Zug', art: 'der', g: 'm', en: 'train', tip: 'Short single-syllable transport/movement words like Zug are often der.' },
+    { w: 'Hund', art: 'der', g: 'm', en: 'dog', tip: 'der Hund — pair it mentally with "der gute Hund".' },
+    { w: 'Kaffee', art: 'der', g: 'm', en: 'coffee', tip: 'Most drinks (Kaffee, Tee, Saft, Wein) are der (except das Wasser / das Bier).' },
+    { w: 'Schlüssel', art: 'der', g: 'm', en: 'key', tip: 'Many tools/objects ending in -el (Schlüssel, Löffel, Mantel) are der.' },
+    { w: 'Bruder', art: 'der', g: 'm', en: 'brother', tip: 'Male people (Bruder, Vater, Freund) are always der.' },
+    { w: 'Tasche', art: 'die', g: 'f', en: 'bag', tip: 'About 90% of nouns ending in -e (Tasche, Jacke, Lampe) are die.' },
+    { w: 'Mutter', art: 'die', g: 'f', en: 'mother', tip: 'Female family members (Mutter, Schwester, Tante) are always die.' },
+    { w: 'Jacke', art: 'die', g: 'f', en: 'jacket', tip: 'Ends in -e → almost always die!' },
+    { w: 'Fahrkarte', art: 'die', g: 'f', en: 'ticket', tip: 'Compound noun: the last word (die Karte) decides the gender → die.' },
+    { w: 'Wohnung', art: 'die', g: 'f', en: 'apartment', tip: '100% of nouns ending in -ung (Wohnung, Zeitung, Übung) are die!' },
+    { w: 'Zeitung', art: 'die', g: 'f', en: 'newspaper', tip: 'Ends in -ung → always die!' },
+    { w: 'Uhr', art: 'die', g: 'f', en: 'watch / clock', tip: 'die Uhr — think "Wie spät ist es? Es ist die Uhr."' },
+    { w: 'Auto', art: 'das', g: 'n', en: 'car', tip: 'Many international words ending in -o (Auto, Kino, Foto, Radio) are das.' },
+    { w: 'Buch', art: 'das', g: 'n', en: 'book', tip: 'das Buch — very common A1 neuter noun.' },
+    { w: 'Handy', art: 'das', g: 'n', en: 'mobile phone', tip: 'Modern English tech loans (das Handy, das Tablet) are often das.' },
+    { w: 'Kind', art: 'das', g: 'n', en: 'child', tip: 'Young beings (das Kind, das Baby) are das.' },
+    { w: 'Fahrrad', art: 'das', g: 'n', en: 'bicycle', tip: 'Ends in das Rad (wheel) → das Fahrrad.' },
+    { w: 'Ticket', art: 'das', g: 'n', en: 'ticket', tip: 'English loanword das Ticket (contrast: die Fahrkarte).' }
+  ];
+
+  // Helper to decline ein-words (mein, dein, sein, ihr, unser, euer, Ihr, ein, kein)
+  function declineEin(base, g, c) {
+    const endMap = {
+      nom: { m: '', f: 'e', n: '' },
+      akk: { m: 'en', f: 'e', n: '' },
+      dat: { m: 'em', f: 'er', n: 'em' }
+    };
+    const end = endMap[c][g];
+    if (base === 'euer' && end !== '') return 'eur' + end; // euer + e -> eure, euren, eurem, eurer
+    return base + end;
+  }
+
+  function declineDer(g, c) {
+    return {
+      nom: { m: 'der', f: 'die', n: 'das' },
+      akk: { m: 'den', f: 'die', n: 'das' },
+      dat: { m: 'dem', f: 'der', n: 'dem' }
+    }[c][g];
+  }
+
+  function declineDies(stem, g, c) {
+    const end = {
+      nom: { m: 'er', f: 'e', n: 'es' },
+      akk: { m: 'en', f: 'e', n: 'es' },
+      dat: { m: 'em', f: 'er', n: 'em' }
+    }[c][g];
+    return stem + end;
+  }
+
+  // ===== 85 HANDCRAFTED NEBENSATZ QUESTIONS =====
+  // Format: [promptBefore, blankHint, promptAfter, enTrans, correct, [w1,w2,w3], conjTag, wagonParts, whySimple]
+  const ROUTE5_Q = [
+    ['Er bleibt zu Hause, ___ er krank ist.', 'because', '', 'He stays home because he is sick.', 'weil', ['dass', 'ob', 'bevor'], 'weil', ['weil', 'er', 'krank', 'ist'], 'Use <b>weil</b> (because) to answer "Why?" (Warum?). Notice <b>ist</b> sits at the very end!'],
+    ['Ich weiß, ___ Olena später kommt.', 'that', '', 'I know that Olena is coming later.', 'dass', ['das', 'weil', 'ob'], 'dass', ['dass', 'Olena', 'später', 'kommt'], 'Use <b>dass</b> (with double-s) for "that" after verbs like wissen, sagen, denken.'],
+    ['Monnir ist nicht da, weil er müde ___.', 'is', '', 'Monnir is not here because he is tired.', 'ist', ['bin', 'bist', 'sind'], 'weil', ['weil', 'er', 'müde', 'ist'], '<b>weil</b> pushes the action word to the very end, and <b>er</b> takes <b>ist</b>.'],
+    ['Ich freue mich, ___ die Sonne scheint.', 'when / if', '', 'I am happy when the sun shines.', 'wenn', ['als', 'ob', 'damit'], 'wenn', ['wenn', 'die Sonne', 'scheint'], 'Use <b>wenn</b> for "if" or repeated events in the present/future ("whenever").'],
+    ['Ich war 10 Jahre alt, ___ ich nach Deutschland kam.', 'when (1x past)', '', 'I was 10 years old when I came to Germany.', 'als', ['wenn', 'weil', 'ob'], 'als', ['als', 'ich', 'nach Deutschland', 'kam'], 'Use <b>als</b> (not wenn!) for a <b>single finished event in the past</b>.'],
+    ['Ich weiß nicht, ___ der Zug heute fährt.', 'whether / if', '', 'I do not know whether the train runs today.', 'ob', ['wenn', 'dass', 'weil'], 'ob', ['ob', 'der Zug', 'heute', 'fährt'], 'Use <b>ob</b> for indirect Yes/No questions ("whether / if").'],
+    ['Wir gehen spazieren, ___ es regnet.', 'although', '', 'We are going for a walk although it is raining.', 'obwohl', ['weil', 'damit', 'bevor'], 'obwohl', ['obwohl', 'es', 'regnet'], 'Use <b>obwohl</b> (although) when two things are surprising opposites!'],
+    ['Ich lerne Deutsch, ___ ich hier arbeiten kann.', 'so that', '', 'I learn German so that I can work here.', 'damit', ['obwohl', 'als', 'bevor'], 'damit', ['damit', 'ich', 'hier', 'arbeiten kann'], 'Use <b>damit</b> (so that) to explain a goal or purpose.'],
+    ['Ich trinke Kaffee, ___ ich zur Arbeit fahre.', 'before', '', 'I drink coffee before I drive to work.', 'bevor', ['weil', 'ob', 'obwohl'], 'bevor', ['bevor', 'ich', 'zur Arbeit', 'fahre'], 'Use <b>bevor</b> (before) to show what happens next in time.'],
+    ['Ich denke, ___ Wetter wird morgen schön.', 'the (das vs dass)', '', 'I think the weather will be nice tomorrow.', 'das', ['dass', 'der', 'die'], 'das_dass', ['das Wetter', 'wird', 'schön'], 'Here you need the article <b>das</b> ("the weather"), NOT the connector <i>dass</i>!'],
+    ['Ich glaube, ___ du recht hast.', 'that (das vs dass)', '', 'I believe that you are right.', 'dass', ['das', 'weil', 'ob'], 'das_dass', ['dass', 'du', 'recht', 'hast'], 'No noun right after it — it connects two clauses ("that"), so use double-s: <b>dass</b>.'],
+    ['Sag mir bitte, ___ der Zug abfährt.', 'when (question)', '', 'Please tell me when the train departs.', 'wann', ['wenn', 'als', 'ob'], 'w_word', ['wann', 'der Zug', 'abfährt'], 'Indirect time question uses the W-word <b>wann</b> and sends <b>abfährt</b> to the end!'],
+    ['Weißt du, ___ der Bahnhof ist?', 'where', '', 'Do you know where the train station is?', 'wo', ['ob', 'dass', 'weil'], 'w_word', ['wo', 'der Bahnhof', 'ist'], 'In an indirect W-question, <b>wo</b> acts like weil/dass and pushes <b>ist</b> to the end.'],
+    ['Er fragt, ___ ich nicht komme.', 'why', '', 'He asks why I am not coming.', 'warum', ['weil', 'dass', 'ob'], 'w_word', ['warum', 'ich', 'nicht', 'komme'], 'Use <b>warum</b> (why) for questions, and <b>weil</b> (because) for answers.'],
+    ['Wir essen Pizza, weil wir Hunger ___.', 'have', '', 'We eat pizza because we are hungry.', 'haben', ['hat', 'habt', 'hast'], 'weil', ['weil', 'wir', 'Hunger', 'haben'], '<b>weil</b> sends <b>haben</b> to the end; <b>wir</b> matches <b>haben</b>.'],
+    ['Sie lächelt, ___ sie eine gute Nachricht hat.', 'because', '', 'She is smiling because she has good news.', 'weil', ['ob', 'bevor', 'obwohl'], 'weil', ['weil', 'sie', 'eine gute Nachricht', 'hat'], 'Explaining a reason ("Why is she smiling?") → <b>weil</b>.'],
+    ['Ruf mich an, ___ du zu Hause bist.', 'when / as soon as', '', 'Call me when you are home.', 'wenn', ['als', 'ob', 'damit'], 'wenn', ['wenn', 'du', 'zu Hause', 'bist'], 'Future condition ("when / if you are home") → <b>wenn</b>.'],
+    ['Ich frage mich, ___ das Restaurant offen ist.', 'whether / if', '', 'I wonder whether the restaurant is open.', 'ob', ['dass', 'weil', 'als'], 'ob', ['ob', 'das Restaurant', 'offen', 'ist'], 'Uncertainty / indirect Yes-No question → always <b>ob</b>!'],
+    ['Er fährt Fahrrad, ___ es sehr kalt ist.', 'although', '', 'He rides a bike although it is very cold.', 'obwohl', ['weil', 'damit', 'bevor'], 'obwohl', ['obwohl', 'es', 'sehr kalt', 'ist'], 'Riding a bike in freezing cold is a contrast → <b>obwohl</b> (although).'],
+    ['Wasch dir die Hände, ___ du isst.', 'before', '', 'Wash your hands before you eat.', 'bevor', ['obwohl', 'weil', 'als'], 'bevor', ['bevor', 'du', 'isst'], 'Time order ("before you eat") → <b>bevor</b>, pushing <b>isst</b> to the end.'],
+    ['Sie spart Geld, ___ sie ein Auto kauft.', 'so that', '', 'She saves money so that she buys a car.', 'damit', ['ob', 'als', 'obwohl'], 'damit', ['damit', 'sie', 'ein Auto', 'kauft'], 'Purpose / goal ("so that") → <b>damit</b>.'],
+    ['___ ich ein Kind war, wohnte ich in Indien.', 'When (past)', '', 'When I was a child, I lived in India.', 'Als', ['Wenn', 'Ob', 'Weil'], 'als', ['Als', 'ich', 'ein Kind', 'war'], 'Childhood happens once in the past → <b>Als</b>!'],
+    ['Das ist das Buch, ___ ich sehr mag.', 'which / that (das vs dass)', '', 'That is the book that I like a lot.', 'das', ['dass', 'der', 'die'], 'das_dass', ['das', 'ich', 'sehr', 'mag'], 'Shortcut: if you can replace "that" with "which" referring to <b>das Buch</b>, write single-s <b>das</b>!'],
+    ['Ich hoffe, ___ es dir gut geht.', 'that', '', 'I hope that you are doing well.', 'dass', ['das', 'ob', 'weil'], 'dass', ['dass', 'es', 'dir', 'gut geht'], 'After "Ich hoffe..." ("I hope that...") always use <b>dass</b>!'],
+    ['Kannst du mir sagen, ___ dieser Mann ist?', 'who', '', 'Can you tell me who this man is?', 'wer', ['wo', 'ob', 'weil'], 'w_word', ['wer', 'dieser Mann', 'ist'], 'Indirect question asking about a person → <b>wer</b>, with <b>ist</b> at the end.']
+  ];
+
+  const ROUTE6_Q = [
+    ['Ich rufe meine Mutter an. → Er sagt, dass er seine Mutter ___.', 'anrufen (calls)', '', 'He says that he is calling his mother.', 'anruft', ['ruft an', 'anrufen', 'rufe an'], 'trennbar', ['dass', 'er', 'seine Mutter', 'anruft'], 'In a dass-clause, <b>ruft ... an</b> glues back together into ONE word at the end: <b>anruft</b>!'],
+    ['Ich kaufe im Supermarkt ein. → Weil sie heute ___.', 'einkaufen (shops)', '', '...because she is shopping today.', 'einkauft', ['kauft ein', 'einkaufen', 'kaufe ein'], 'trennbar', ['weil', 'sie', 'heute', 'einkauft'], '<b>kauft ... ein</b> glues together at the end → <b>einkauft</b>.'],
+    ['Ich stehe um 6 Uhr auf. → Er sagt, dass er früh ___.', 'aufstehen (gets up)', '', 'He says that he gets up early.', 'aufsteht', ['steht auf', 'aufstehen', 'stehe auf'], 'trennbar', ['dass', 'er', 'früh', 'aufsteht'], 'Glue <b>auf</b> + <b>steht</b> together for "er" → <b>aufsteht</b>!'],
+    ['Kommst du mit? → Ich frage, ob du heute ___.', 'mitkommen (come along)', '', 'I am asking whether you are coming along today.', 'mitkommst', ['kommst mit', 'mitkommen', 'mitkommt'], 'trennbar', ['ob', 'du', 'heute', 'mitkommst'], 'For <b>du</b>, <b>kommst ... mit</b> glues together into <b>mitkommst</b>.'],
+    ['Der Kurs fängt um 9 Uhr an. → Ich weiß, dass der Kurs um 9 ___.', 'anfangen (starts)', '', 'I know that the course starts at 9.', 'anfängt', ['fängt an', 'anfangen', 'anfangt'], 'trennbar', ['dass', 'der Kurs', 'um 9', 'anfängt'], 'Keep the umlaut (fängt) and glue <b>an</b> in front → <b>anfängt</b>.'],
+    ['Der Zug fährt um 8 Uhr ab. → Sag mir, wann der Zug ___.', 'abfahren (departs)', '', 'Tell me when the train departs.', 'abfährt', ['fährt ab', 'abfahren', 'abfahrt'], 'trennbar', ['wann', 'der Zug', 'abfährt'], '<b>fährt ... ab</b> glues into one word at the end: <b>abfährt</b>.'],
+    ['Der Bus kommt gleich an. → Ich hoffe, dass der Bus pünktlich ___.', 'ankommen (arrives)', '', 'I hope that the bus arrives on time.', 'ankommt', ['kommt an', 'ankommen', 'ankommst'], 'trennbar', ['dass', 'der Bus', 'pünktlich', 'ankommt'], '<b>kommt ... an</b> → <b>ankommt</b> (one word!).'],
+    ['Wir sehen abends fern. → Er bleibt wach, weil er ___.', 'fernsehen (watches TV)', '', 'He stays awake because he is watching TV.', 'fernsieht', ['sieht fern', 'fernsehen', 'fernseht'], 'trennbar', ['weil', 'er', 'fernsieht'], 'For <b>er</b>, sehen becomes <b>sieht</b>; glued with fern → <b>fernsieht</b>.'],
+    ['Ich räume das Zimmer auf. → Sie sagt, dass sie das Zimmer ___.', 'aufräumen (tidies up)', '', 'She says that she is tidying up the room.', 'aufräumt', ['räumt auf', 'aufräumen', 'aufräume'], 'trennbar', ['dass', 'sie', 'das Zimmer', 'aufräumt'], 'Glue <b>auf</b> + <b>räumt</b> → <b>aufräumt</b>!'],
+    ['Wir laden dich ein. → Ich freue mich, dass ihr mich ___.', 'einladen (invite)', '', 'I am happy that you (pl.) invite me.', 'einladet', ['ladet ein', 'einladen', 'einlädt'], 'trennbar', ['dass', 'ihr', 'mich', 'einladet'], 'For <b>ihr</b> (you all), <b>ladet ... ein</b> glues into <b>einladet</b>.'],
+    ['Er kommt morgen zurück. → Ich weiß, dass er morgen ___.', 'zurückkommen (comes back)', '', 'I know that he comes back tomorrow.', 'zurückkommt', ['kommt zurück', 'zurückkommen', 'zurückkomme'], 'trennbar', ['dass', 'er', 'morgen', 'zurückkommt'], 'Glue <b>zurück</b> + <b>kommt</b> → <b>zurückkommt</b>.'],
+    ['Es ist kalt, weil du das Fenster nicht ___.', 'zumachen (close)', '', 'It is cold because you do not close the window.', 'zumachst', ['machst zu', 'zumachen', 'zumacht'], 'trennbar', ['weil', 'du', 'das Fenster', 'nicht', 'zumachst'], 'For <b>du</b>: <b>zu</b> + <b>machst</b> = <b>zumachst</b>.'],
+    ['Es ist warm, wenn ich die Tür ___.', 'aufmachen (open)', '', 'It is warm when I open the door.', 'aufmache', ['mache auf', 'aufmachen', 'aufmacht'], 'trennbar', ['wenn', 'ich', 'die Tür', 'aufmache'], 'For <b>ich</b>: <b>auf</b> + <b>mache</b> = <b>aufmache</b>.'],
+    ['Sie bringt Kuchen mit. → Super, dass sie Kuchen ___.', 'mitbringen (brings along)', '', 'Great that she is bringing cake along.', 'mitbringt', ['bringt mit', 'mitbringen', 'mitbringe'], 'trennbar', ['dass', 'sie', 'Kuchen', 'mitbringt'], 'Glue <b>mit</b> + <b>bringt</b> → <b>mitbringt</b>!'],
+    ['Wir bereiten das Essen vor. → Weil wir das Essen ___.', 'vorbereiten (prepare)', '', '...because we are preparing the food.', 'vorbereiten', ['bereiten vor', 'vorbereitet', 'vorbereite'], 'trennbar', ['weil', 'wir', 'das Essen', 'vorbereiten'], 'For <b>wir</b>: <b>vor</b> + <b>bereiten</b> = <b>vorbereiten</b>.'],
+    ['Er ist so müde, dass er sofort ___.', 'einschlafen (falls asleep)', '', 'He is so tired that he falls asleep immediately.', 'einschläft', ['schläft ein', 'einschlafen', 'einschlaft'], 'trennbar', ['dass', 'er', 'sofort', 'einschläft'], '<b>schläft ... ein</b> glues together into <b>einschläft</b>.'],
+    ['Du musst wissen, wo du in Frankfurt ___.', 'umsteigen (transfer trains)', '', 'You need to know where you transfer in Frankfurt.', 'umsteigst', ['steigst um', 'umsteigen', 'umsteigt'], 'trennbar', ['wo', 'du', 'in Frankfurt', 'umsteigst'], 'For <b>du</b>: <b>um</b> + <b>steigst</b> = <b>umsteigst</b>.'],
+    ['Sag mir, wann wir am Bahnhof ___.', 'aussteigen (get off)', '', 'Tell me when we get off at the station.', 'aussteigen', ['steigen aus', 'aussteigt', 'aussteige'], 'trennbar', ['wann', 'wir', 'am Bahnhof', 'aussteigen'], 'For <b>wir</b>: <b>aus</b> + <b>steigen</b> = <b>aussteigen</b>.'],
+    ['Der Lehrer freut sich, wenn alle gut ___.', 'zuhören (listen)', '', 'The teacher is happy when everyone listens well.', 'zuhören', ['hören zu', 'zuhört', 'zuhörst'], 'trennbar', ['wenn', 'alle', 'gut', 'zuhören'], '<b>alle</b> (plural) takes <b>hören</b> → glued together: <b>zuhören</b>.'],
+    ['Es macht Spaß, wenn du beim Spiel ___.', 'mitmachen (join in)', '', 'It is fun when you join in the game.', 'mitmachst', ['machst mit', 'mitmachen', 'mitmacht'], 'trennbar', ['wenn', 'du', 'beim Spiel', 'mitmachst'], 'For <b>du</b>: <b>mit</b> + <b>machst</b> = <b>mitmachst</b>!']
+  ];
+
+  const ROUTE7_Q = [
+    ['„Ich habe Essen gekocht.“ → Sie sagt, dass sie Essen ___.', 'Perfekt (2 verbs)', '', 'She says that she has cooked food.', 'gekocht hat', ['hat gekocht', 'gekocht habe', 'kochen hat'], 'zweiverben', ['dass', 'sie', 'Essen', 'gekocht', 'hat'], 'The helper word (<b>hat</b>) ALWAYS jumps to the VERY LAST spot: <b>gekocht hat</b>!'],
+    ['„Ich kann gut Fahrrad fahren.“ → Sie sagt, dass sie gut Fahrrad ___.', 'Modal (2 verbs)', '', 'She says that she can ride a bike well.', 'fahren kann', ['kann fahren', 'fährt kann', 'fahren kannst'], 'zweiverben', ['dass', 'sie', 'gut Fahrrad', 'fahren', 'kann'], 'In a dass-clause, the modal helper (<b>kann</b>) moves behind the other verb: <b>fahren kann</b>!'],
+    ['„Das Wetter wird sonnig sein.“ → Ich denke, dass das Wetter sonnig ___.', 'Futur (2 verbs)', '', 'I think that the weather will be sunny.', 'sein wird', ['wird sein', 'ist wird', 'sein wirst'], 'zweiverben', ['dass', 'das Wetter', 'sonnig', 'sein', 'wird'], 'The helper <b>wird</b> goes to the very end: <b>sein wird</b>.'],
+    ['Er ist müde, weil er lange ___.', 'worked (Perfekt)', '', 'He is tired because he worked for a long time.', 'gearbeitet hat', ['hat gearbeitet', 'gearbeitet ist', 'arbeiten hat'], 'zweiverben', ['weil', 'er', 'lange', 'gearbeitet', 'hat'], 'Helper <b>hat</b> goes LAST → <b>gearbeitet hat</b>.'],
+    ['Sie kommt nicht, weil sie arbeiten ___.', 'must (Modal)', '', 'She is not coming because she has to work.', 'muss', ['müssen', 'musst', 'muss arbeiten'], 'zweiverben', ['weil', 'sie', 'arbeiten', 'muss'], '<b>arbeiten</b> is already there, so just put the helper <b>muss</b> at the end!'],
+    ['Ich lerne Deutsch, weil ich in Deutschland ___.', 'want to live (Modal)', '', 'I learn German because I want to live in Germany.', 'leben will', ['will leben', 'lebe will', 'leben willst'], 'zweiverben', ['weil', 'ich', 'in Deutschland', 'leben', 'will'], 'Put the main verb first, helper <b>will</b> last: <b>leben will</b>.'],
+    ['Wir freuen uns, dass du endlich ___.', 'have arrived (Perfekt: sein)', '', 'We are happy that you have finally arrived.', 'angekommen bist', ['bist angekommen', 'angekommen hast', 'ankommen bist'], 'zweiverben', ['dass', 'du', 'endlich', 'angekommen', 'bist'], '<b>ankommen</b> uses <b>sein</b> (bist) — and <b>bist</b> goes last: <b>angekommen bist</b>!'],
+    ['Er fragt, ob er das Fenster ___.', 'may open (Modal)', '', 'He asks whether he may open the window.', 'öffnen darf', ['darf öffnen', 'öffnet darf', 'öffnen dürfen'], 'zweiverben', ['ob', 'er', 'das Fenster', 'öffnen', 'darf'], 'Modal helper <b>darf</b> sits in the red caboose at the end: <b>öffnen darf</b>.'],
+    ['Ich weiß, dass er nach Berlin ___.', 'drove / went (Perfekt: sein)', '', 'I know that he went to Berlin.', 'gefahren ist', ['ist gefahren', 'gefahren hat', 'fahren ist'], 'zweiverben', ['dass', 'er', 'nach Berlin', 'gefahren', 'ist'], 'Movement uses <b>ist</b>, placed very last → <b>gefahren ist</b>.'],
+    ['Der Arzt sagt, dass ich viel Wasser ___.', 'should drink (Modal)', '', 'The doctor says that I should drink lots of water.', 'trinken soll', ['soll trinken', 'trinke soll', 'trinken sollst'], 'zweiverben', ['dass', 'ich', 'viel Wasser', 'trinken', 'soll'], 'Helper <b>soll</b> goes after <b>trinken</b> → <b>trinken soll</b>.'],
+    ['Ich glaube, dass wir das Spiel ___.', 'have won (Perfekt)', '', 'I believe that we have won the game.', 'gewonnen haben', ['haben gewonnen', 'gewonnen sind', 'gewinnen haben'], 'zweiverben', ['dass', 'wir', 'das Spiel', 'gewonnen', 'haben'], '<b>haben</b> goes to the very end: <b>gewonnen haben</b>.'],
+    ['Sie bleibt im Bett, obwohl sie heute ___.', 'has to work (Modal)', '', 'She stays in bed although she has to work today.', 'arbeiten muss', ['muss arbeiten', 'arbeitet muss', 'arbeiten müssen'], 'zweiverben', ['obwohl', 'sie', 'heute', 'arbeiten', 'muss'], '<b>obwohl</b> pushes <b>muss</b> behind <b>arbeiten</b> → <b>arbeiten muss</b>.'],
+    ['Er spart Geld, damit er eine Reise ___.', 'can make (Modal)', '', 'He saves money so that he can take a trip.', 'machen kann', ['kann machen', 'macht kann', 'machen können'], 'zweiverben', ['damit', 'er', 'eine Reise', 'machen', 'kann'], 'Helper <b>kann</b> goes last → <b>machen kann</b>!'],
+    ['Weißt du, ob Anna den Brief ___?', 'has written (Perfekt)', '', 'Do you know whether Anna has written the letter?', 'geschrieben hat', ['hat geschrieben', 'geschrieben ist', 'schreiben hat'], 'zweiverben', ['ob', 'Anna', 'den Brief', 'geschrieben', 'hat'], '<b>hat</b> moves to the very end: <b>geschrieben hat</b>.'],
+    ['Ich bin froh, weil ich den Test ___.', 'have passed (Perfekt)', '', 'I am glad because I passed the test.', 'bestanden habe', ['habe bestanden', 'bestanden bin', 'bestehen habe'], 'zweiverben', ['weil', 'ich', 'den Test', 'bestanden', 'habe'], 'For <b>ich</b>, helper <b>habe</b> stands last: <b>bestanden habe</b>.'],
+    ['Er sagt, dass er heute Abend Pizza ___.', 'would like to eat (Modal)', '', 'He says that he would like to eat pizza tonight.', 'essen möchte', ['möchte essen', 'isst möchte', 'essen möchtest'], 'zweiverben', ['dass', 'er', 'heute Abend', 'Pizza', 'essen', 'möchte'], '<b>möchte</b> moves to the very last spot: <b>essen möchte</b>.'],
+    ['Sie erzählt, dass sie gestern im Kino ___.', 'has been (Perfekt: sein)', '', 'She tells that she was at the cinema yesterday.', 'gewesen ist', ['ist gewesen', 'gewesen hat', 'sein ist'], 'zweiverben', ['dass', 'sie', 'gestern', 'im Kino', 'gewesen', 'ist'], 'Past of sein = <b>gewesen ist</b> (helper <b>ist</b> last!).'],
+    ['Ich hoffe, dass du bald ___.', 'will come (Futur)', '', 'I hope that you will come soon.', 'kommen wirst', ['wirst kommen', 'kommst wirst', 'kommen wird'], 'zweiverben', ['dass', 'du', 'bald', 'kommen', 'wirst'], 'For <b>du</b>, <b>wirst</b> goes to the end → <b>kommen wirst</b>.'],
+    ['Wir rufen an, bevor wir ___.', 'have to leave (Modal)', '', 'We call before we have to leave.', 'gehen müssen', ['müssen gehen', 'gehen muss', 'geht müssen'], 'zweiverben', ['bevor', 'wir', 'gehen', 'müssen'], 'For <b>wir</b>, <b>müssen</b> stands at the very end: <b>gehen müssen</b>.'],
+    ['Er lacht, weil er einen lustigen Film ___.', 'has seen (Perfekt)', '', 'He laughs because he saw a funny movie.', 'gesehen hat', ['hat gesehen', 'gesehen ist', 'sehen hat'], 'zweiverben', ['weil', 'er', 'einen lustigen Film', 'gesehen', 'hat'], 'Helper <b>hat</b> sits at the very end: <b>gesehen hat</b>!']
+  ];
+
+  const ROUTE8_Q = [
+    ['Bhavani: „Ich rufe meine Mutter an.“ → B. sagt, dass ___ Mutter anruft.', 'ich/meine → er/seine', '', 'B. says that he is calling his mother.', 'er seine', ['ich meine', 'er meine', 'sie ihre'], 'perspektive', ['dass', 'er', 'seine Mutter', 'anruft'], 'Bhavani is "er", so <b>ich → er</b> and <b>meine → seine</b>!'],
+    ['Tom: „Es geht mir gut.“ → Tom sagt, dass es ___ gut geht.', 'mir → ihm', '', 'Tom says that he is doing well.', 'ihm', ['mir', 'ihn', 'ihr'], 'perspektive', ['dass', 'es', 'ihm', 'gut', 'geht'], 'Tom is male ("er"), and "es geht" needs Dativ: <b>mir → ihm</b>!'],
+    ['Anna: „Es geht mir gut.“ → Anna sagt, dass es ___ gut geht.', 'mir → ihr', '', 'Anna says that she is doing well.', 'ihr', ['mir', 'ihm', 'sie'], 'perspektive', ['dass', 'es', 'ihr', 'gut', 'geht'], 'Anna is female ("sie"), so Dativ <b>mir</b> becomes <b>ihr</b>!'],
+    ['Maria: „Ich suche meinen Schlüssel.“ → Maria sagt, dass sie ___ Schlüssel sucht.', 'meinen → ihren', '', 'Maria says that she is looking for her key.', 'ihren', ['seinen', 'meinen', 'ihrem'], 'perspektive', ['dass', 'sie', 'ihren Schlüssel', 'sucht'], 'Maria = she → <b>ihr-</b>, plus Akkusativ for der Schlüssel → <b>ihren</b>!'],
+    ['Paul: „Ich liebe mein Auto.“ → Paul sagt, dass er ___ Auto liebt.', 'mein → sein', '', 'Paul says that he loves his car.', 'sein', ['mein', 'ihr', 'seinen'], 'perspektive', ['dass', 'er', 'sein Auto', 'liebt'], 'Paul = he → <b>sein</b> (das Auto has no ending).'],
+    ['Wir: „Unser Zug ist spät.“ → Sie sagen, dass ___ Zug spät ist.', 'unser → ihr', '', 'They say that their train is late.', 'ihr', ['unser', 'euer', 'sein'], 'perspektive', ['dass', 'ihr Zug', 'spät', 'ist'], 'When talking about "them" (sie), <b>unser</b> ("our") changes to <b>ihr</b> ("their")!'],
+    ['Lisa: „Ich habe mein Buch vergessen.“ → Lisa sagt, dass sie ___ Buch vergessen hat.', 'mein → ihr', '', 'Lisa says that she forgot her book.', 'ihr', ['sein', 'mein', 'ihre'], 'perspektive', ['dass', 'sie', 'ihr Buch', 'vergessen hat'], 'Lisa = she → <b>ihr</b> (das Buch → no -e ending).'],
+    ['Chef: „Du machst deine Arbeit gut.“ → Der Chef sagt, dass ich ___ Arbeit gut mache.', 'deine → meine', '', 'The boss says that I do my work well.', 'meine', ['deine', 'seine', 'ihre'], 'perspektive', ['dass', 'ich', 'meine Arbeit', 'gut mache'], 'The boss was talking to YOU ("du/deine"), so when you repeat it: <b>ich / meine</b>!'],
+    ['Olena: „Ich treffe mich mit meinem Bruder.“ → Olena sagt, dass sie sich mit ___ Bruder trifft.', 'meinem → ihrem', '', 'Olena says that she is meeting with her brother.', 'ihrem', ['seinem', 'meinem', 'ihren'], 'perspektive', ['dass', 'sie', 'sich', 'mit ihrem Bruder', 'trifft'], 'Olena = she (<b>ihr-</b>) + <b>mit</b> (Dativ for der Bruder) → <b>ihrem</b>!'],
+    ['Max: „Ich fahre mit meinem Vater.“ → Max sagt, dass er mit ___ Vater fährt.', 'meinem → seinem', '', 'Max says that he is traveling with his father.', 'seinem', ['ihrem', 'meinem', 'seinen'], 'perspektive', ['dass', 'er', 'mit seinem Vater', 'fährt'], 'Max = he (<b>sein-</b>) + <b>mit</b> (Dativ) → <b>seinem</b>!'],
+    ['Freunde: „Es geht uns super!“ → Die Freunde sagen, dass es ___ super geht.', 'uns → ihnen', '', 'The friends say that they are doing great.', 'ihnen', ['uns', 'ihm', 'euch'], 'perspektive', ['dass', 'es', 'ihnen', 'super', 'geht'], 'Talking about "them" in Dativ ("es geht..."): <b>uns → ihnen</b>!'],
+    ['Lukas: „Ich kann meine Tasche nicht finden.“ → Er sagt, dass er ___ Tasche nicht finden kann.', 'meine → seine', '', 'He says that he cannot find his bag.', 'seine', ['ihre', 'meine', 'sein'], 'perspektive', ['dass', 'er', 'seine Tasche', 'nicht finden kann'], 'Lukas = he (<b>sein</b>) + die Tasche (<b>+e</b>) → <b>seine</b>!'],
+    ['Nina: „Ich habe Essen gekocht.“ → Nina sagt, dass ___ Essen gekocht hat.', 'ich → sie', '', 'Nina says that she cooked food.', 'sie', ['ich', 'er', 'wir'], 'perspektive', ['dass', 'sie', 'Essen', 'gekocht hat'], 'Nina is female, so <b>Ich</b> becomes <b>sie</b>!'],
+    ['Tim: „Ich helfe dir gern.“ → Tim sagt mir, dass er ___ gern hilft.', 'dir → mir', '', 'Tim tells me that he gladly helps me.', 'mir', ['dir', 'ihm', 'mich'], 'perspektive', ['dass', 'er', 'mir', 'gern', 'hilft'], 'Tim said "dir" to you, so from your point of view it becomes <b>mir</b>!'],
+    ['Eltern: „Wir besuchen euch morgen.“ → Sie sagen, dass ___ uns morgen besuchen.', 'wir → sie', '', 'They say that they are visiting us tomorrow.', 'sie', ['wir', 'ihr', 'er'], 'perspektive', ['dass', 'sie', 'uns', 'morgen', 'besuchen'], 'Parents ("Wir") reported from outside becomes <b>sie</b> ("they").'],
+    ['Sara: „Mein Hund ist süß.“ → Sara sagt, dass ___ Hund süß ist.', 'mein → ihr', '', 'Sara says that her dog is cute.', 'ihr', ['sein', 'mein', 'ihre'], 'perspektive', ['dass', 'ihr Hund', 'süß', 'ist'], 'Sara = she → <b>ihr</b> (der Hund in Nominativ takes no ending).'],
+    ['Jan: „Ich treffe dich am Bahnhof.“ → Jan sagt mir, dass er ___ am Bahnhof trifft.', 'dich → mich', '', 'Jan tells me that he is meeting me at the station.', 'mich', ['dich', 'mir', 'ihn'], 'perspektive', ['dass', 'er', 'mich', 'am Bahnhof', 'trifft'], '<b>treffen</b> takes Akkusativ; "dich" to you becomes <b>mich</b>!'],
+    ['Kinder: „Wir räumen unser Zimmer auf.“ → Sie sagen, dass sie ___ Zimmer aufräumen.', 'unser → ihr', '', 'They say that they are tidying up their room.', 'ihr', ['unser', 'euer', 'sein'], 'perspektive', ['dass', 'sie', 'ihr Zimmer', 'aufräumen'], 'Kids = they (sie) → <b>ihr</b> (das Zimmer takes no ending).'],
+    ['Peter: „Ich bin stolz auf meine Schwester.“ → Peter sagt, dass er stolz auf ___ Schwester ist.', 'meine → seine', '', 'Peter says that he is proud of his sister.', 'seine', ['ihre', 'meine', 'seinen'], 'perspektive', ['dass', 'er', 'stolz auf seine Schwester', 'ist'], 'Peter = he → <b>seine</b> (die Schwester).'],
+    ['Lehrerin: „Ihr lernt schnell!“ → Sie sagt uns, dass ___ schnell lernen.', 'ihr → wir', '', 'She tells us that we learn fast.', 'wir', ['ihr', 'sie', 'ich'], 'perspektive', ['dass', 'wir', 'schnell', 'lernen'], 'She told us "ihr" (you all), so when WE repeat it → <b>wir</b>!']
+  ];
+
+  const ROUTES = [
+    { id: 0, part: 1, name: '1. Talbahnhof', short: '1. Possessiv', icon: '🚂', desc: 'Possessivartikel (mein, dein, sein, ihr, unser, euer→eure, Ihr)', sky: ['#56b4e9', '#cceeff'], mtn1: '#6488a8', mtn2: '#3f627d', grass: '#4d9a48', target: 8 },
+    { id: 1, part: 1, name: '2. Königsee', short: '2. der/ein/kein', icon: '🌲', desc: 'Bestimmte, Unbestimmte & Negativartikel (der, ein, kein, keinem)', sky: ['#3b9ad9', '#b8e8ff'], mtn1: '#4f7a8a', mtn2: '#2c5364', grass: '#3b8c52', target: 8 },
+    { id: 2, part: 1, name: '3. Rheintal', short: '3. dieser/welcher', icon: '🏰', desc: 'Demonstrativ- & Frageartikel (dieser, diese, dieses, welchen, welchem)', sky: ['#60a5fa', '#dbeafe'], mtn1: '#6c7a9c', mtn2: '#475569', grass: '#5da649', target: 8 },
+    { id: 3, part: 1, name: '4. Bernina-Pass', short: '4. Pronomen', icon: '🏔️', desc: 'Personalpronomen (ich/mich/mir, treffen + Akk, mit + Dativ)', sky: ['#4f8fd8', '#c7e2ff'], mtn1: '#5c6f8c', mtn2: '#334155', grass: '#4e8f57', target: 8 },
+    { id: 4, part: 2, name: '5. Schwarzwald', short: '5. Nebensätze (25)', icon: '🌲', desc: 'weil, dass, wenn, als, ob, obwohl, damit, bevor + das/dass', sky: ['#3882a8', '#a7d8e8'], mtn1: '#3b5e54', mtn2: '#1f3d36', grass: '#2f6f46', target: 8 },
+    { id: 5, part: 2, name: '6. Gotthard-Bahn', short: '6. Trennbar (20)', icon: '🚄', desc: 'Trennbare Verben im Nebensatz (rufe...an → dass er anruft)', sky: ['#f59e0b', '#fde68a'], mtn1: '#8c5a4a', mtn2: '#5c382e', grass: '#5d8a42', target: 8 },
+    { id: 6, part: 2, name: '7. Matterhorn', short: '7. Zwei Verben (20)', icon: '⛰️', desc: 'Perfekt, Modalverben & Futur im Nebensatz (gekocht hat / fahren kann)', sky: ['#6366f1', '#c7d2fe'], mtn1: '#5b5f97', mtn2: '#373b69', grass: '#4a7c59', target: 8 },
+    { id: 7, part: 2, name: '8. Gipfel-Tour', short: '8. Perspektive (20+)', icon: '👑', desc: 'Indirekte Rede (ich/meine → er/seine, mir → ihm) + Grand Mix', sky: ['#1e3a8a', '#93c5fd'], mtn1: '#475569', mtn2: '#1e293b', grass: '#3b7a57', target: 10 }
+  ];
+
+  /* =========================================================
+     2. EXAMPLES-FIRST, ZERO-JARGON CONCEPT GUIDES
+  ========================================================= */
+  const CONCEPTS = {
+    poss: {
+      title: '💡 Possessivartikel (mein, dein, sein, ihr...)',
+      examples: [
+        ['Das ist <span class="hl">mein</span> Vater.', 'That is my father. (Just naming him → no extra ending)'],
+        ['Ich besuche <span class="hl">meinen</span> Vater.', 'I visit my father. (Action on a der-word → add <b>-en</b>)'],
+        ['Ich fahre mit <span class="hl">meinem</span> Vater.', 'I travel with my father. (After <b>mit</b> → add <b>-em</b>)']
+      ],
+      shortcut: '<b>Step 1 — Pick the owner:</b> ich→<b>mein</b>, du→<b>dein</b>, er/es→<b>sein</b>, sie(she/they)→<b>ihr</b>, wir→<b>unser</b>, ihr(you all)→<b>euer</b>, Sie→<b>Ihr</b>.<br><b>Step 2 — Add ending:</b><br>• Normal ("Das ist..."): <b>der/das = nothing</b>, <b>die = +e</b>.<br>• Action ("Ich suche/sehe..."): ONLY <b>der</b> gets <b>+en</b>!<br>• After <b>mit / zu / bei</b>: <b>der/das = +em</b>, <b>die = +er</b>.<br>• Watch out: <b>euer + e = eure</b> (drop the middle "e")!',
+      tableHtml: `<table class="g-table"><tr><th>Situation</th><th>der</th><th>die</th><th>das</th></tr>
+        <tr><td>Normal (Das ist...)</td><td>mein</td><td>mein<b>e</b></td><td>mein</td></tr>
+        <tr><td>Action (Ich suche...)</td><td>mein<b>en</b></td><td>mein<b>e</b></td><td>mein</td></tr>
+        <tr><td>After <b>mit</b> (Dativ)</td><td>mein<b>em</b></td><td>mein<b>er</b></td><td>mein<b>em</b></td></tr></table>`
+    },
+    art: {
+      title: '💡 der / ein / kein (the, a, no)',
+      examples: [
+        ['Das ist <span class="hl">kein</span> Hund.', 'That is not a dog. (Normal der-word → kein)'],
+        ['Ich habe <span class="hl">keinen</span> Koffer.', 'I have no suitcase. (Action on der-word → add <b>-en</b>)'],
+        ['Ich fahre mit <span class="hl">dem</span> Zug / mit <span class="hl">keinem</span> Auto.', 'With the train / with no car. (After <b>mit</b> → <b>-m</b>!)']
+      ],
+      shortcut: '<b>Good news:</b> <b>kein</b> is just <b>ein</b> with a "k" in front — they use the <b>exact same endings</b>!<br>• Normal: der/das → <b>ein / kein</b>, die → <b>eine / keine</b>.<br>• Action ("Ich habe/suche"): ONLY <b>der</b> changes → <b>den / einen / keinen</b>.<br>• After <b>mit</b>: <b>der/das → dem / einem / keinem</b>, <b>die → der / einer / keiner</b>.',
+      tableHtml: `<table class="g-table"><tr><th>Case</th><th>der (m)</th><th>die (f)</th><th>das (n)</th></tr>
+        <tr><td>Normal (Nom)</td><td>der / ein / kein</td><td>die / eine / keine</td><td>das / ein / kein</td></tr>
+        <tr><td>Action (Akk)</td><td><b>den / einen / keinen</b></td><td>die / eine / keine</td><td>das / ein / kein</td></tr>
+        <tr><td>With mit (Dat)</td><td><b>dem / einem / keinem</b></td><td><b>der / einer / keiner</b></td><td><b>dem / einem / keinem</b></td></tr></table>`
+    },
+    dies: {
+      title: '💡 dieser & welcher (this / which?)',
+      examples: [
+        ['<span class="hl">Dieser</span> Zug ist schnell.', 'This train is fast. (<b>der</b> → dies<b>er</b>)'],
+        ['Ich kaufe <span class="hl">diesen</span> Koffer.', 'I buy this suitcase. (Action on der → dies<b>en</b>)'],
+        ['Mit <span class="hl">welchem</span> Auto fährst du?', 'With which car are you driving? (After <b>mit</b> → welch<b>em</b>)']
+      ],
+      shortcut: '<b>Copy the last letter of der / die / das!</b><br>• der → <b>-er</b> (dieser / welcher)<br>• die → <b>-e</b> (diese / welche)<br>• das → <b>-es</b> (dieses / welches)<br>• Action on der (den) → <b>-en</b> (diesen / welchen)<br>• After <b>mit</b> (dem/der) → <b>-em</b> (der/das) or <b>-er</b> (die).',
+      tableHtml: `<table class="g-table"><tr><th>Case</th><th>der</th><th>die</th><th>das</th></tr>
+        <tr><td>Normal</td><td>dies<b>er</b></td><td>dies<b>e</b></td><td>dies<b>es</b></td></tr>
+        <tr><td>Action</td><td>dies<b>en</b></td><td>dies<b>e</b></td><td>dies<b>es</b></td></tr>
+        <tr><td>After mit</td><td>dies<b>em</b></td><td>dies<b>er</b></td><td>dies<b>em</b></td></tr></table>`
+    },
+    pron: {
+      title: '💡 Personalpronomen (ich / mich / mir)',
+      examples: [
+        ['Wo treffe ich <span class="hl">dich</span>?', 'Where do I meet you? (<b>treffen</b> = direct action → Akkusativ)'],
+        ['Ich treffe mich <b>mit</b> <span class="hl">dir</span>.', 'I meet up with you. (<b>mit</b> = Dativ magnet → dir)'],
+        ['Es geht <span class="hl">ihm</span> gut.', 'He is doing well. (<b>es geht</b> always takes Dativ!)']
+      ],
+      shortcut: '<b>Check the trigger word right before the blank:</b><br>• Doing the action → <b>ich, du, er, sie, wir</b>.<br>• Direct target (<b>treffe / sehe / kenne</b>) → <b>mich, dich, ihn, sie, uns, euch</b>.<br>• Dativ magnet (<b>mit / es geht / helfe</b>) → <b>mir, dir, ihm, ihr, uns, euch, ihnen, Ihnen</b>.',
+      tableHtml: `<table class="g-table"><tr><th>Who</th><th>Normal</th><th>treffen (Akk)</th><th>mit / es geht (Dat)</th></tr>
+        <tr><td>I / you</td><td>ich / du</td><td>mich / dich</td><td><b>mir / dir</b></td></tr>
+        <tr><td>he / she</td><td>er / sie</td><td><b>ihn</b> / sie</td><td><b>ihm / ihr</b></td></tr>
+        <tr><td>we / you all</td><td>wir / ihr</td><td>uns / euch</td><td>uns / euch</td></tr>
+        <tr><td>they / formal</td><td>sie / Sie</td><td>sie / Sie</td><td><b>ihnen / Ihnen</b></td></tr></table>`
+    },
+    ns_conj: {
+      title: '💡 Clauses with weil, dass, wenn, als, ob, obwohl...',
+      examples: [
+        ['Er schläft, <span class="hl">weil</span> er müde <b>ist</b>.', 'He sleeps <b>because</b> he tired <b>is</b>. (Action word jumps to the end!)'],
+        ['Ich weiß nicht, <span class="hl">ob</span> der Zug <b>fährt</b>.', 'I don\'t know <b>whether</b> the train runs.'],
+        ['Wir gehen raus, <span class="hl">obwohl</span> es <b>regnet</b>.', 'We go outside <b>although</b> it rains.']
+      ],
+      shortcut: '<b>Quick Meaning Cheat Sheet:</b><br>• <b>weil</b> = because (Why?) · <b>dass</b> = that (facts/thoughts)<br>• <b>wenn</b> = if / whenever · <b>als</b> = when (1 time in the past)<br>• <b>ob</b> = whether/if (Yes/No question) · <b>obwohl</b> = although (contrast)<br>• <b>damit</b> = so that (goal) · <b>bevor</b> = before<br>• <b>das vs. dass:</b> <b>das</b> = "the" (before a noun) or "which". <b>dass</b> = "that" connector.',
+      tableHtml: `<div class="wagon-diagram"><span class="wagon-car">weil / dass / ob</span> ➔ <span class="wagon-car">Person</span> ➔ <span class="wagon-car">Rest</span> ➔ <span class="wagon-caboose">VERB LAST!</span></div>`
+    },
+    trennbar: {
+      title: '💡 Separable Verbs in weil / dass Clauses',
+      examples: [
+        ['Normal: Ich <b>rufe</b> meine Mutter <b>an</b>.', 'I call my mother. (Split into 2 pieces)'],
+        ['With dass: Er sagt, dass er seine Mutter <span class="hl">anruft</span>.', 'He says that he calls his mother. (Glued back together!)'],
+        ['With weil: Sie geht los, weil sie heute <span class="hl">einkauft</span>.', 'She leaves because she shops today.']
+      ],
+      shortcut: '<b>The Glue Rule:</b> In a normal sentence, verbs like <b>anrufen</b> split apart (<i>rufe ... an</i>).<br>Inside a <b>dass / weil / wenn / ob</b> clause, the verb goes to the end AND <b>glues back into ONE word</b>!<br>• rufe ... an → <b>anruft</b><br>• kauft ... ein → <b>einkauft</b><br>• fährt ... ab → <b>abfährt</b>',
+      tableHtml: `<div class="wagon-diagram"><span class="wagon-car">dass</span> ➔ <span class="wagon-car">er</span> ➔ <span class="wagon-car">seine Mutter</span> ➔ <span class="wagon-caboose">an + ruft = anruft</span></div>`
+    },
+    zweiverben: {
+      title: '💡 Two Verbs in a weil / dass Clause',
+      examples: [
+        ['Normal: Sie <b>hat</b> Essen <b>gekocht</b>.', 'She has cooked food.'],
+        ['With dass: Er sagt, dass sie Essen <span class="hl">gekocht hat</span>.', 'He says that she food <b>cooked has</b>. (Helper <b>hat</b> goes LAST!)'],
+        ['Modal: Er sagt, dass sie Fahrrad <span class="hl">fahren kann</span>.', 'He says that she bike <b>ride can</b>. (Helper <b>kann</b> goes LAST!)']
+      ],
+      shortcut: '<b>Look for the helper word:</b> <b>hat, ist, kann, muss, will, darf, soll, möchte, wird</b>.<br>In a <b>weil / dass / ob / obwohl</b> clause, that helper word ALWAYS sits in the <b>very last spot</b> — right after the other verb!',
+      tableHtml: `<div class="wagon-diagram"><span class="wagon-car">dass</span> ➔ <span class="wagon-car">sie</span> ➔ <span class="wagon-car">Essen</span> ➔ <span class="wagon-car">gekocht</span> ➔ <span class="wagon-caboose">hat (LAST!)</span></div>`
+    },
+    perspektive: {
+      title: '💡 Reporting What Someone Said (Perspektivwechsel)',
+      examples: [
+        ['Bhavani: „<b>Ich</b> rufe <b>meine</b> Mutter an.“ → Er sagt, dass <span class="hl">er seine</span> Mutter anruft.', 'I / my → he / his'],
+        ['Tom: „Es geht <b>mir</b> gut.“ → Tom sagt, dass es <span class="hl">ihm</span> gut geht.', 'me → him (Dativ)'],
+        ['Anna: „Es geht <b>mir</b> gut.“ → Anna sagt, dass es <span class="hl">ihr</span> gut geht.', 'me → her (Dativ)']
+      ],
+      shortcut: '<b>Step into the listener\'s shoes!</b><br>• A man says "ich / mein / mir" → change to <b>er / sein / ihm</b>.<br>• A woman says "ich / mein / mir" → change to <b>sie / ihr / ihr</b>.<br>• A group says "wir / unser / uns" → change to <b>sie / ihr / ihnen</b>.<br>• Someone says "du / dein / dir" to YOU → change to <b>ich / mein / mir</b>.',
+      tableHtml: `<table class="g-table"><tr><th>Speaker says</th><th>About a Man</th><th>About a Woman</th><th>About a Group</th></tr>
+        <tr><td>ich / mein</td><td><b>er / sein</b></td><td><b>sie / ihr</b></td><td>—</td></tr>
+        <tr><td>mir (Dativ)</td><td><b>ihm</b></td><td><b>ihr</b></td><td>—</td></tr>
+        <tr><td>wir / unser / uns</td><td>—</td><td>—</td><td><b>sie / ihr / ihnen</b></td></tr></table>`
+    }
+  };
+
+  /* =========================================================
+     3. QUESTION GENERATORS
+  ========================================================= */
+  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+  const shuffle = arr => {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  function makeUniqueChoices(correct, pool) {
+    const set = new Set([correct]);
+    for (const item of shuffle(pool)) {
+      if (set.size >= 4) break;
+      if (item && item !== correct) set.add(item);
+    }
+    return shuffle([...set]);
+  }
+
+  function caseMeta(c) {
+    if (c === 'nom') return { name: 'Nominativ', badge: '👑 Subject Trigger (Das ist...) → Nominativ', cls: 'trig-nom', frame: 'Das ist', frameEn: 'That is' };
+    if (c === 'akk') return { name: 'Akkusativ', badge: '🎯 Action Trigger (Ich suche...) → Akkusativ', cls: 'trig-akk', frame: 'Ich suche', frameEn: 'I am looking for' };
+    return { name: 'Dativ', badge: '🧲 Dativ Magnet (mit...) → Dativ', cls: 'trig-dat', frame: 'Ich fahre mit', frameEn: 'I travel with' };
+  }
+
+  function genRoute1() {
+    const p = rand(PRONOUNS);
+    const n = rand(NOUNS);
+    const c = rand(['nom', 'nom', 'akk', 'dat']);
+    const cm = caseMeta(c);
+    const correct = declineEin(p.base, n.g, c);
+    const dist = [
+      declineEin(p.base, n.g === 'f' ? 'm' : 'f', c),
+      declineEin(p.base, n.g, c === 'dat' ? 'akk' : 'dat'),
+      declineEin(p.base === 'sein' ? 'ihr' : (p.base === 'ihr' ? 'sein' : (p.base === 'euer' ? 'ihr' : 'dein')), n.g, c),
+      p.base === 'euer' ? 'euere' : (p.base === 'ihr' ? 'Ihr' : p.base + 'e'),
+      p.base + 'em', p.base + 'en'
+    ];
+    const fullDe = `${cm.frame} ${correct} ${n.w}.`;
+    const fullEn = `${cm.frameEn} ${p.en} ${n.en}.`;
+    return {
+      id: `r1_${p.key}_${n.w}_${c}`,
+      routeId: 0,
+      conceptKey: 'poss',
+      tag: `Possessivartikel · ${cm.name}`,
+      caseInfo: cm,
+      noun: n,
+      ownerLabel: p.label,
+      promptParts: { before: `${cm.frame} `, after: ` ${n.w}.`, artNoun: true },
+      sub: `Owner: ${p.label} · (${fullEn})`,
+      correct,
+      choices: makeUniqueChoices(correct, dist),
+      fullDe,
+      fullEn,
+      explainRight: `<b>${p.label}</b> uses the base <b>${p.base}</b>. With <b>${n.art} ${n.w}</b> in <b>${cm.name}</b>, it becomes <b>${correct}</b>.`,
+      diagnoseWrong: picked => {
+        if (picked === 'euere') return `Watch the spelling trap! When <b>euer</b> gets an ending, drop the middle "e": <b>euer + e → eure</b> (not <i>euere</i>).`;
+        if (p.base === 'Ihr' && picked.toLowerCase() === correct.toLowerCase()) return `<b>Sie (formal)</b> is ALWAYS capitalized: <b>${correct}</b> (not lowercase <i>${picked}</i>).`;
+        if (picked.toLowerCase().startsWith(p.base.slice(0, 3).toLowerCase())) {
+          return `Right owner (<b>${p.base}</b>), wrong ending! For <b>${n.art} ${n.w}</b> after <b>"${cm.frame}"</b> (${cm.name}), the exact form is <b>${correct}</b>.`;
+        }
+        return `Owner mix-up! <b>${p.label}</b> uses <b>${p.base}-</b> → <b>${correct}</b> (you picked <b>${picked}</b>).`;
+      }
+    };
+  }
+
+  function genRoute2() {
+    const type = rand(['der', 'ein', 'kein']);
+    const n = rand(NOUNS);
+    const c = rand(['nom', 'akk', 'dat']);
+    const cm = caseMeta(c);
+    const correct = type === 'der' ? declineDer(n.g, c) : declineEin(type, n.g, c);
+    const labelEn = type === 'der' ? 'the' : (type === 'ein' ? 'a / an' : 'no / not a');
+    const dist = [
+      declineDer('m', c), declineDer('f', c), declineDer('n', c),
+      declineEin('ein', 'm', c), declineEin('ein', 'f', c), declineEin('ein', 'm', 'dat'),
+      declineEin('kein', 'm', 'nom'), declineEin('kein', 'm', 'akk'), declineEin('kein', 'm', 'dat'), declineEin('kein', 'f', 'dat')
+    ].filter(x => (type === 'der' ? ['der','die','das','den','dem'].includes(x) : x.startsWith(type.slice(0,2))));
+    const fullDe = `${cm.frame} ${correct} ${n.w}.`;
+    const fullEn = `${cm.frameEn} ${labelEn} ${n.en}.`;
+    return {
+      id: `r2_${type}_${n.w}_${c}`,
+      routeId: 1,
+      conceptKey: 'art',
+      tag: `${type === 'der' ? 'Bestimmter' : type === 'ein' ? 'Unbestimmter' : 'Negativ-'}Artikel · ${cm.name}`,
+      caseInfo: cm,
+      noun: n,
+      promptParts: { before: `${cm.frame} `, after: ` ${n.w}.`, artNoun: true },
+      sub: `Meaning: "${labelEn}" · (${fullEn})`,
+      correct,
+      choices: makeUniqueChoices(correct, dist),
+      fullDe,
+      fullEn,
+      explainRight: `For <b>${n.art} ${n.w}</b> after <b>"${cm.frame}"</b> (${cm.name}), "${labelEn}" becomes <b>${correct}</b>.`,
+      diagnoseWrong: picked => `After <b>"${cm.frame}"</b> (${cm.name}), <b>${n.art} ${n.w}</b> needs <b>${correct}</b> (you chose <b>${picked}</b>). Remember: in Akkusativ only <b>der</b> adds <b>-n</b>; in Dativ <b>der/das</b> add <b>-m</b> and <b>die</b> adds <b>-r</b>!`
+    };
+  }
+
+  function genRoute3() {
+    const stem = rand(['dies', 'welch']);
+    const n = rand(NOUNS);
+    const c = rand(['nom', 'akk', 'dat']);
+    const cm = caseMeta(c);
+    const correct = declineDies(stem, n.g, c);
+    const enWord = stem === 'dies' ? 'this' : 'which';
+    const frame = stem === 'welch'
+      ? (c === 'nom' ? 'Ist' : c === 'akk' ? 'Suchst du' : 'Fährst du mit')
+      : cm.frame;
+    const frameEn = stem === 'welch'
+      ? (c === 'nom' ? 'Is' : c === 'akk' ? 'Are you looking for' : 'Are you traveling with')
+      : cm.frameEn;
+    const endPunc = stem === 'welch' ? (c === 'nom' ? ' gut?' : '?') : '.';
+    const fullDe = `${frame} ${correct} ${n.w}${endPunc}`;
+    const fullEn = `${frameEn} ${enWord} ${n.en}${stem === 'welch' ? '?' : '.'}`;
+    const dist = [stem+'er', stem+'e', stem+'es', stem+'en', stem+'em'];
+    return {
+      id: `r3_${stem}_${n.w}_${c}`,
+      routeId: 2,
+      conceptKey: 'dies',
+      tag: `${stem === 'dies' ? 'Demonstrativartikel' : 'Frageartikel'} · ${cm.name}`,
+      caseInfo: cm,
+      noun: n,
+      promptParts: { before: `${frame} `, after: ` ${n.w}${endPunc}`, artNoun: true },
+      sub: `Word: ${stem}er ("${enWord}") · (${fullEn})`,
+      correct,
+      choices: makeUniqueChoices(correct, dist),
+      fullDe,
+      fullEn,
+      explainRight: `<b>${stem}-</b> copies the ending of <b>${declineDer(n.g, c)}</b> (${cm.name} for ${n.art} ${n.w}) → <b>${correct}</b>!`,
+      diagnoseWrong: picked => `Just copy the last letter of <b>${declineDer(n.g, c)}</b>! For <b>${n.art} ${n.w}</b> in ${cm.name}, <b>${stem}-</b> becomes <b>${correct}</b> (not <i>${picked}</i>).`
+    };
+  }
+
+  function genRoute4() {
+    const p = rand(PRONOUNS);
+    const frames = [
+      { c: 'akk', before: 'Wo treffe ich ', after: '?', en: `Where do I meet ${p.akkEn}?`, correct: p.akk, badge: '🎯 treffen + Akkusativ', cls: 'trig-akk', why: '<b>treffen</b> (to meet) always takes Akkusativ.' },
+      { c: 'dat', before: 'Ich treffe mich mit ', after: '.', en: `I am meeting up with ${p.akkEn}.`, correct: p.dat, badge: '🧲 mit + Dativ Magnet', cls: 'trig-dat', why: '<b>mit</b> ALWAYS pulls Dativ!' },
+      { c: 'dat', before: 'Es geht ', after: ' heute gut.', en: `${p.label.split(' ')[0]} feels good today.`, correct: p.dat, badge: '🧲 es geht + Dativ', cls: 'trig-dat', why: '<b>Es geht ... gut</b> ALWAYS uses Dativ (mir, dir, ihm, ihr...).' },
+      { c: 'dat', before: 'Kann ich ', after: ' helfen?', en: `Can I help ${p.akkEn}?`, correct: p.dat, badge: '🧲 helfen + Dativ', cls: 'trig-dat', why: '<b>helfen</b> (to help) is a classic Dativ verb!' }
+    ];
+    const f = rand(frames);
+    const dist = [p.key.split('_')[0], p.akk, p.dat, 'mich', 'mir', 'dich', 'dir', 'ihn', 'ihm', 'ihr', 'ihnen', 'Ihnen'];
+    const fullDe = `${f.before}${f.correct}${f.after}`;
+    return {
+      id: `r4_${p.key}_${f.before.slice(0,6)}`,
+      routeId: 3,
+      conceptKey: 'pron',
+      tag: `Personalpronomen · ${f.c === 'akk' ? 'Akkusativ' : 'Dativ'}`,
+      caseInfo: { badge: f.badge, cls: f.cls },
+      promptParts: { before: f.before, after: f.after, artNoun: false },
+      sub: `Person: ${p.label} · (${f.en})`,
+      correct: f.correct,
+      choices: makeUniqueChoices(f.correct, dist),
+      fullDe,
+      fullEn: f.en,
+      explainRight: `${f.why} So <b>${p.label}</b> becomes <b>${f.correct}</b>.`,
+      diagnoseWrong: picked => `${f.why} For <b>${p.label}</b>, the right form is <b>${f.correct}</b> (you picked <b>${picked}</b>).`
+    };
+  }
+
+  function wrapHandcrafted(row, routeId, conceptKey, tagLabel, idx) {
+    const [rawPrompt, blankHint, _, enTrans, correct, wrongs, _tag, wagon, whySimple] = row;
+    const parts = rawPrompt.split('___');
+    const fullDe = rawPrompt.replace('___', correct);
+    return {
+      id: `r${routeId+1}_q${idx}`,
+      routeId,
+      conceptKey,
+      tag: tagLabel,
+      caseInfo: { badge: '🚂 Nebensatz Rule → Verb goes to the Caboose!', cls: 'trig-ns' },
+      promptParts: { before: parts[0], after: parts[1] || '', artNoun: false },
+      sub: `Hint: (${blankHint}) · "${enTrans}"`,
+      correct,
+      choices: makeUniqueChoices(correct, wrongs),
+      fullDe,
+      fullEn: enTrans,
+      wagon,
+      explainRight: whySimple,
+      diagnoseWrong: picked => `You picked <b>${picked}</b>, but the right fit is <b>${correct}</b>. ${whySimple}`
+    };
+  }
+
+  const HANDCRAFTED_POOLS = {
+    4: ROUTE5_Q.map((r, i) => wrapHandcrafted(r, 4, 'ns_conj', 'Nebensatz · Conjunctions & das/dass', i)),
+    5: ROUTE6_Q.map((r, i) => wrapHandcrafted(r, 5, 'trennbar', 'Trennbare Verben im Nebensatz', i)),
+    6: ROUTE7_Q.map((r, i) => wrapHandcrafted(r, 6, 'zweiverben', 'Zwei Verben im Nebensatz', i)),
+    7: ROUTE8_Q.map((r, i) => wrapHandcrafted(r, 7, 'perspektive', 'Indirekte Rede & Perspektivwechsel', i))
+  };
+
+  /* =========================================================
+     4. STATE & BAHNCARD PASSPORT (localStorage)
+  ========================================================= */
+  const STORAGE_KEY = 'alpen_express_passport_v2';
+  function loadPassport() {
+    try {
+      const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return {
+        completed: Array.isArray(d.completed) ? d.completed : [],
+        soloStars: Number(d.soloStars) || 0,
+        weakSpots: Array.isArray(d.weakSpots) ? d.weakSpots : []
+      };
+    } catch {
+      return { completed: [], soloStars: 0, weakSpots: [] };
+    }
+  }
+  function savePassport() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.passport)); } catch {}
+  }
+
+  const state = {
+    passport: loadPassport(),
+    selectedRouteId: 0,
+    isCommuteMix: false,
+    showArtikel: true,
+    soundOn: true,
+    slowSpeech: false,
+    queue: [],
+    currentQ: null,
+    loadedCount: 0,
+    targetCount: 8,
+    sessionStars: 0,
+    usedConceptThisQ: false,
+    locked: false,
+    // Canvas animation state
+    t: 0,
+    trainX: -260,
+    trainTargetX: 0,
+    trainMode: 'enter', // enter | idle | depart
+    craneX: 0.5,
+    craneTargetX: 0.5,
+    cableLen: 0.12,
+    cranePhase: 'idle', // idle | toCrate | lift | toWagon | drop | bounce | reset
+    activeCrateLabel: '',
+    activeCrateOk: true,
+    pendingResult: null,
+    loadedCratesOnWagon: [],
+    smoke: [],
+    sparks: []
+  };
+
+  /* =========================================================
+     5. AUDIO (WEB AUDIO SYNTH + GERMAN SPEECH SHADOWING)
+  ========================================================= */
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!state.soundOn) return null;
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playTone(freq, dur, type = 'sine', gainVal = 0.08, delay = 0) {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+    g.gain.exponentialRampToValueAtTime(gainVal, ctx.currentTime + delay + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + dur);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(ctx.currentTime + delay);
+    osc.stop(ctx.currentTime + delay + dur + 0.02);
+  }
+
+  function sfxOk() { playTone(523.25, 0.14, 'triangle', 0.09, 0); playTone(659.25, 0.16, 'triangle', 0.09, 0.09); playTone(783.99, 0.24, 'triangle', 0.1, 0.18); }
+  function sfxErr() { playTone(220, 0.18, 'sawtooth', 0.06, 0); playTone(165, 0.28, 'sawtooth', 0.06, 0.12); }
+  function sfxWhistle() { playTone(587.3, 0.28, 'sine', 0.07, 0); playTone(739.9, 0.32, 'sine', 0.07, 0.15); }
+  function sfxPuff() {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 600;
+    const g = ctx.createGain();
+    g.gain.value = 0.04;
+    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+    src.start();
+  }
+
+  function speakGerman(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/„|“|→/g, ' ').replace(/\s+/g, ' ').trim();
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = 'de-DE';
+    u.rate = state.slowSpeech ? 0.72 : 0.94;
+    window.speechSynthesis.speak(u);
+  }
+
+  /* =========================================================
+     6. JOURNEY & QUESTION FLOW
+  ========================================================= */
+  function buildQueueForRoute(routeId) {
+    const route = ROUTES[routeId];
+    if (routeId === 0) return Array.from({ length: route.target }, () => genRoute1());
+    if (routeId === 1) return Array.from({ length: route.target }, () => genRoute2());
+    if (routeId === 2) return Array.from({ length: route.target }, () => genRoute3());
+    if (routeId === 3) return Array.from({ length: route.target }, () => genRoute4());
+    if (routeId >= 4 && routeId <= 6) {
+      return shuffle(HANDCRAFTED_POOLS[routeId]).slice(0, route.target);
+    }
+    // Route 8: 7 handcrafted perspective + 3 mixed from all topics
+    const p8 = shuffle(HANDCRAFTED_POOLS[7]).slice(0, 7);
+    const mix = [genRoute1(), genRoute2(), rand(HANDCRAFTED_POOLS[4])];
+    return shuffle([...p8, ...mix]);
+  }
+
+  function buildCommuteMix() {
+    const qList = [];
+    // Pull saved weak spots first if matching handcrafted pools
+    const allHandcrafted = [...HANDCRAFTED_POOLS[4], ...HANDCRAFTED_POOLS[5], ...HANDCRAFTED_POOLS[6], ...HANDCRAFTED_POOLS[7]];
+    for (const wid of state.passport.weakSpots.slice(0, 4)) {
+      const found = allHandcrafted.find(x => x.id === wid);
+      if (found) qList.push(found);
+    }
+    const fillers = [genRoute1(), genRoute2(), genRoute3(), genRoute4(), rand(HANDCRAFTED_POOLS[4]), rand(HANDCRAFTED_POOLS[5]), rand(HANDCRAFTED_POOLS[6]), rand(HANDCRAFTED_POOLS[7])];
+    for (const f of shuffle(fillers)) {
+      if (qList.length >= 8) break;
+      qList.push(f);
+    }
+    return qList;
+  }
+
+  function startJourney(routeId, commuteMix = false) {
+    state.isCommuteMix = commuteMix;
+    state.selectedRouteId = commuteMix ? 0 : routeId;
+    state.queue = commuteMix ? buildCommuteMix() : buildQueueForRoute(routeId);
+    state.loadedCount = 0;
+    state.targetCount = state.queue.length;
+    state.sessionStars = 0;
+    state.loadedCratesOnWagon = [];
+    closeModal('modal-start');
+    closeModal('modal-complete');
+    sfxWhistle();
+    loadNextStop();
+  }
+
+  function loadNextStop() {
+    if (state.loadedCount >= state.targetCount || state.queue.length === 0) {
+      finishRoute();
+      return;
+    }
+    state.currentQ = state.queue.shift();
+    state.usedConceptThisQ = false;
+    state.locked = false;
+    state.trainMode = 'enter';
+    state.trainX = -280;
+    state.cranePhase = 'idle';
+    state.craneTargetX = 0.52;
+    sfxPuff();
+    renderHUD();
+    renderSignboard();
+    renderCrates();
+  }
+
+  function renderHUD() {
+    const r = ROUTES[state.selectedRouteId];
+    document.getElementById('hud-route').textContent = state.isCommuteMix ? '⚡ Commute Mix' : r.short;
+    document.getElementById('hud-progress').textContent = `🚂 ${state.loadedCount}/${state.targetCount}`;
+    document.getElementById('hud-stars').textContent = `⭐ ${state.sessionStars}`;
+    const btnArt = document.getElementById('btn-artikel');
+    btnArt.classList.toggle('active', state.showArtikel);
+    btnArt.innerHTML = `🏷️ <span class="lbl">Artikel: ${state.showArtikel ? 'AN' : 'AUS'}</span>`;
+  }
+
+  function renderSignboard() {
+    const q = state.currentQ;
+    if (!q) return;
+    document.getElementById('sign-tag').textContent = q.tag;
+    let afterHtml = q.promptParts.after;
+    if (q.promptParts.artNoun && q.noun && state.showArtikel) {
+      const cls = q.noun.art === 'der' ? 'art-der' : (q.noun.art === 'die' ? 'art-die' : 'art-das');
+      afterHtml = afterHtml.replace(q.noun.w, `<span class="${cls}">${q.noun.art}</span> ${q.noun.w}`);
+    }
+    document.getElementById('sign-prompt').innerHTML = `${q.promptParts.before}<span class="blank-slot">___</span>${afterHtml}`;
+    document.getElementById('sign-sub').textContent = q.sub;
+  }
+
+  function renderCrates() {
+    const grid = document.getElementById('crate-grid');
+    grid.innerHTML = '';
+    const q = state.currentQ;
+    q.choices.forEach((choice, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'crate-btn';
+      btn.innerHTML = `<span class="crate-key">${i + 1}</span><span>${choice}</span>`;
+      btn.addEventListener('click', () => handlePick(choice, btn, i));
+      grid.appendChild(btn);
+    });
+  }
+
+  function handlePick(choice, btnEl, idx) {
+    if (state.locked || !state.currentQ) return;
+    state.locked = true;
+    const q = state.currentQ;
+    const isOk = choice === q.correct;
+
+    document.querySelectorAll('.crate-btn').forEach(b => b.disabled = true);
+    btnEl.classList.add(isOk ? 'picked-ok' : 'picked-err');
+
+    // Start crane pickup choreography
+    state.activeCrateLabel = choice;
+    state.activeCrateOk = isOk;
+    state.pendingResult = { q, choice, isOk };
+    state.craneTargetX = 0.22 + idx * 0.19;
+    state.cranePhase = 'toCrate';
+
+    if (isOk) {
+      sfxOk();
+      state.loadedCount++;
+      const earnedStar = !state.usedConceptThisQ;
+      if (earnedStar) {
+        state.sessionStars++;
+        state.passport.soloStars++;
+      }
+      // Remove from weakSpots if mastered
+      state.passport.weakSpots = state.passport.weakSpots.filter(id => id !== q.id);
+      savePassport();
+    } else {
+      sfxErr();
+      // Record weak spot & re-queue 2 stops later
+      if (!state.passport.weakSpots.includes(q.id)) {
+        state.passport.weakSpots.unshift(q.id);
+        if (state.passport.weakSpots.length > 25) state.passport.weakSpots.pop();
+        savePassport();
+      }
+      const insertAt = Math.min(2, state.queue.length);
+      state.queue.splice(insertAt, 0, q);
+    }
+    renderHUD();
+  }
+
+  function openFeedbackModal({ q, choice, isOk }) {
+    const head = document.getElementById('fb-head');
+    const title = document.getElementById('fb-title');
+    const sub = document.getElementById('fb-sub');
+    const body = document.getElementById('fb-body');
+    const nextBtn = document.getElementById('btn-fb-next');
+
+    head.className = `modal-head ${isOk ? 'ok-head' : 'err-head'}`;
+    if (isOk) {
+      const starTxt = !state.usedConceptThisQ ? ' · ⭐ Solo Gold Star!' : '';
+      title.textContent = `✅ Crate Loaded!${starTxt}`;
+      sub.textContent = 'Great work — review the full sentence & hear the German audio!';
+    } else {
+      title.textContent = '🔧 A1 Grammar Coach — Let\'s Fix This!';
+      sub.textContent = 'This crate bounced back and will return 2 stops later so you master it.';
+    }
+
+    const cmpHtml = isOk ? '' : `
+      <div class="compare-grid">
+        <div class="cmp-card wrong"><div class="cmp-lbl">Your Choice</div><div class="cmp-val">${choice}</div></div>
+        <div class="cmp-card right"><div class="cmp-lbl">Correct Answer</div><div class="cmp-val">${q.correct}</div></div>
+      </div>`;
+
+    const triggerHtml = q.caseInfo ? `<span class="trigger-badge ${q.caseInfo.cls}">${q.caseInfo.badge}</span>` : '';
+
+    let wagonHtml = '';
+    if (q.wagon && q.wagon.length) {
+      const cars = q.wagon.map((w, i) => i === q.wagon.length - 1
+        ? `<span class="wagon-caboose">🚃 ${w}</span>`
+        : `<span class="wagon-car">${w}</span> ➔ `).join('');
+      wagonHtml = `<div class="wagon-diagram">${cars}</div>`;
+    }
+
+    const genderHtml = q.noun ? `
+      <div class="section-box examples">
+        <div class="box-label">🧠 Gender Memory Trick (${q.noun.art} ${q.noun.w})</div>
+        <div>${q.noun.tip}</div>
+      </div>` : '';
+
+    body.innerHTML = `
+      ${cmpHtml}
+      <div class="section-box">
+        <div class="box-label">🗣️ Full German Sentence</div>
+        <div class="ex-de" style="font-size:16px;">${q.fullDe}</div>
+        <div class="ex-en">${q.fullEn}</div>
+        <div class="audio-bar">
+          <button id="btn-speak-de" class="audio-btn">🔊 Hear German</button>
+          <button id="btn-speed-toggle" class="speed-btn">${state.slowSpeech ? '🐢 Slow (0.72×)' : '🗣️ Normal (0.94×)'}</button>
+        </div>
+      </div>
+      <div class="section-box shortcut">
+        <div class="box-label">⚡ Why It Works</div>
+        ${triggerHtml}
+        <div>${isOk ? q.explainRight : q.diagnoseWrong(choice)}</div>
+        ${wagonHtml}
+      </div>
+      ${genderHtml}
+    `;
+
+    document.getElementById('btn-speak-de').addEventListener('click', () => speakGerman(q.fullDe));
+    document.getElementById('btn-speed-toggle').addEventListener('click', e => {
+      state.slowSpeech = !state.slowSpeech;
+      e.currentTarget.textContent = state.slowSpeech ? '🐢 Slow (0.72×)' : '🗣️ Normal (0.94×)';
+      speakGerman(q.fullDe);
+    });
+
+    nextBtn.textContent = state.loadedCount >= state.targetCount ? 'Arrive at Destination! 🎉' : 'Next Stop →';
+    openModal('modal-feedback');
+  }
+
+  function finishRoute() {
+    sfxWhistle();
+    if (!state.isCommuteMix && !state.passport.completed.includes(state.selectedRouteId)) {
+      state.passport.completed.push(state.selectedRouteId);
+      savePassport();
+    }
+    const r = ROUTES[state.selectedRouteId];
+    document.getElementById('complete-sub').textContent = state.isCommuteMix ? '⚡ 3-Min Commute Mix Complete!' : `${r.name} Completed!`;
+    document.getElementById('complete-body').innerHTML = `
+      <div class="section-box examples" style="text-align:center;">
+        <div style="font-size:38px;">🏆🚂</div>
+        <h3 style="margin:6px 0;">All ${state.targetCount} Crates Delivered!</h3>
+        <p style="margin:4px 0;">Solo Gold Stars this trip: <b>⭐ ${state.sessionStars} / ${state.targetCount}</b></p>
+        <p style="margin:4px 0; color:#475569;">Passport Stamp Earned · Saved automatically in your browser.</p>
+      </div>`;
+    openModal('modal-complete');
+  }
+
+  /* =========================================================
+     7. CONCEPT GUIDE, ROUTE PICKER & 5-TAB HANDBOOK
+  ========================================================= */
+  function openConceptGuide() {
+    if (!state.currentQ) return;
+    state.usedConceptThisQ = true;
+    const c = CONCEPTS[state.currentQ.conceptKey] || CONCEPTS.poss;
+    document.getElementById('concept-title').textContent = c.title;
+    const exHtml = c.examples.map(([de, en]) => `
+      <div class="ex-item">
+        <div class="ex-de">${de}</div>
+        <div class="ex-en">${en}</div>
+      </div>`).join('');
+    document.getElementById('concept-body').innerHTML = `
+      <div class="section-box examples">
+        <div class="box-label">👀 Real Examples First</div>
+        ${exHtml}
+      </div>
+      <div class="section-box shortcut">
+        <div class="box-label">⚡ 3-Second Shortcut Rule</div>
+        <div>${c.shortcut}</div>
+      </div>
+      <div class="section-box compare">
+        <div class="box-label">📖 Quick Visual Table</div>
+        ${c.tableHtml}
+      </div>`;
+    openModal('modal-concept');
+  }
+
+  function renderStartModal() {
+    const p = state.passport;
+    document.getElementById('passport-metrics').textContent = `🎫 Routes: ${p.completed.length}/8 · ⭐ Solo Stars: ${p.soloStars} · 🎯 Weak Spots: ${p.weakSpots.length}`;
+    const p1 = document.getElementById('routes-part1');
+    const p2 = document.getElementById('routes-part2');
+    p1.innerHTML = '';
+    p2.innerHTML = '';
+    ROUTES.forEach(r => {
+      const done = p.completed.includes(r.id);
+      const card = document.createElement('button');
+      card.className = 'route-card' + (r.id === state.selectedRouteId ? ' selected' : '');
+      card.innerHTML = `
+        <div>
+          <div class="route-name">${r.icon} ${r.name}</div>
+          <div class="route-desc">${r.desc}</div>
+        </div>
+        <div class="route-stamp">${done ? '✅' : '🎫'}</div>`;
+      card.addEventListener('click', () => {
+        state.selectedRouteId = r.id;
+        renderStartModal();
+      });
+      (r.part === 1 ? p1 : p2).appendChild(card);
+    });
+  }
+
+  const HB_TABS = [
+    { key: 'poss', label: 'Possessiv' },
+    { key: 'art', label: 'der/ein/kein' },
+    { key: 'dies', label: 'dieser/welcher' },
+    { key: 'pron', label: 'Pronomen' },
+    { key: 'ns_conj', label: 'Nebensätze' }
+  ];
+
+  function renderHandbook(activeKey = 'poss') {
+    const tabs = document.getElementById('hb-tabs');
+    const content = document.getElementById('hb-content');
+    tabs.innerHTML = '';
+    HB_TABS.forEach(t => {
+      const b = document.createElement('button');
+      b.className = 'tab-btn' + (t.key === activeKey ? ' active' : '');
+      b.textContent = t.label;
+      b.addEventListener('click', () => renderHandbook(t.key));
+      tabs.appendChild(b);
+    });
+    const c = CONCEPTS[activeKey];
+    const extraNs = activeKey === 'ns_conj'
+      ? `<div class="section-box shortcut"><div class="box-label">🔗 Separable &amp; Two Verbs</div>${CONCEPTS.trennbar.shortcut}<hr style="border:none;border-top:1px solid #bae6fd;margin:8px 0;">${CONCEPTS.zweiverben.shortcut}</div>`
+      : '';
+    content.innerHTML = `
+      <div class="section-box examples">
+        <div class="box-label">👀 Examples</div>
+        ${c.examples.map(([d, e]) => `<div class="ex-item"><div class="ex-de">${d}</div><div class="ex-en">${e}</div></div>`).join('')}
+      </div>
+      <div class="section-box shortcut">
+        <div class="box-label">⚡ Rule</div>
+        <div>${c.shortcut}</div>
+      </div>
+      <div class="section-box compare">${c.tableHtml}</div>
+      ${extraNs}`;
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  /* =========================================================
+     8. ILLUSTRATED 2D HTML5 CANVAS RAILWAY ENGINE
+  ========================================================= */
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  let cw = 600, ch = 260;
+
+  function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cw = Math.max(240, rect.width);
+    ch = Math.max(100, rect.height);
+    canvas.width = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
+
+  function updateSim(dt) {
+    state.t += dt;
+    const wagonCenter = cw * 0.52;
+    state.trainTargetX = wagonCenter - 70;
+
+    if (state.trainMode === 'enter') {
+      state.trainX += (state.trainTargetX - state.trainX) * Math.min(1, dt * 4.2);
+      if (Math.abs(state.trainX - state.trainTargetX) < 1.5) {
+        state.trainX = state.trainTargetX;
+        state.trainMode = 'idle';
+      }
+    }
+
+    // Smoke puffs from chimney
+    if (Math.random() < dt * 4.5) {
+      state.smoke.push({ x: state.trainX + 168, y: ch * 0.62 - 42, r: 5, a: 0.75, vx: -14 - Math.random() * 10, vy: -22 - Math.random() * 12 });
+    }
+    state.smoke.forEach(s => { s.x += s.vx * dt; s.y += s.vy * dt; s.r += 10 * dt; s.a -= 0.42 * dt; });
+    state.smoke = state.smoke.filter(s => s.a > 0.02);
+
+    // Sparks on wrong crate bounce
+    state.sparks.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.a -= 1.6 * dt; });
+    state.sparks = state.sparks.filter(p => p.a > 0);
+
+    // Gantry crane animation
+    const speed = 1.6;
+    if (state.cranePhase === 'toCrate') {
+      const diff = state.craneTargetX - state.craneX;
+      state.craneX += Math.sign(diff) * Math.min(Math.abs(diff), dt * speed);
+      if (Math.abs(diff) < 0.015) state.cranePhase = 'lift';
+    } else if (state.cranePhase === 'lift') {
+      state.cableLen = Math.min(0.42, state.cableLen + dt * 1.4);
+      if (state.cableLen >= 0.42) state.cranePhase = 'toWagon';
+    } else if (state.cranePhase === 'toWagon') {
+      state.cableLen = Math.max(0.18, state.cableLen - dt * 1.1);
+      const target = 0.48;
+      const diff = target - state.craneX;
+      state.craneX += Math.sign(diff) * Math.min(Math.abs(diff), dt * 1.1);
+      if (Math.abs(diff) < 0.015 && state.cableLen <= 0.19) {
+        state.cranePhase = state.activeCrateOk ? 'drop' : 'bounce';
+        if (!state.activeCrateOk) {
+          for (let i = 0; i < 14; i++) {
+            state.sparks.push({ x: cw * state.craneX, y: ch * 0.52, vx: (Math.random() - 0.5) * 180, vy: -60 - Math.random() * 110, a: 1 });
+          }
+        }
+      }
+    } else if (state.cranePhase === 'drop') {
+      state.cableLen = Math.min(0.45, state.cableLen + dt * 1.6);
+      if (state.cableLen >= 0.45) {
+        state.loadedCratesOnWagon.push(state.activeCrateLabel);
+        state.cranePhase = 'reset';
+      }
+    } else if (state.cranePhase === 'bounce') {
+      state.cableLen = Math.max(0.12, state.cableLen - dt * 1.8);
+      if (state.cableLen <= 0.12) state.cranePhase = 'reset';
+    } else if (state.cranePhase === 'reset') {
+      state.cableLen = Math.max(0.12, state.cableLen - dt * 1.5);
+      if (state.cableLen <= 0.125 && state.pendingResult) {
+        const res = state.pendingResult;
+        state.pendingResult = null;
+        state.cranePhase = 'idle';
+        openFeedbackModal(res);
+      }
+    }
+  }
+
+  function drawScene() {
+    const r = ROUTES[state.selectedRouteId] || ROUTES[0];
+    // Sky gradient
+    const sky = ctx.createLinearGradient(0, 0, 0, ch);
+    sky.addColorStop(0, r.sky[0]);
+    sky.addColorStop(1, r.sky[1]);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // Sun
+    ctx.fillStyle = 'rgba(255, 245, 180, 0.35)';
+    ctx.beginPath(); ctx.arc(cw * 0.86, ch * 0.22, 34, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(cw * 0.86, ch * 0.22, 22, 0, Math.PI * 2); ctx.fill();
+
+    // Clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.82)';
+    for (let i = 0; i < 3; i++) {
+      const cx = ((state.t * (10 + i * 4) + i * 240) % (cw + 120)) - 60;
+      const cy = ch * (0.16 + i * 0.08);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+      ctx.arc(cx + 18, cy - 5, 20, 0, Math.PI * 2);
+      ctx.arc(cx + 38, cy, 15, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Distant & near Alpine mountains
+    const drawPeaks = (color, baseY, amp, step, offset) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, ch);
+      for (let x = -step; x <= cw + step; x += step) {
+        const h = amp * (0.65 + 0.35 * Math.sin(x * 0.013 + offset));
+        ctx.lineTo(x, baseY);
+        ctx.lineTo(x + step * 0.5, baseY - h);
+      }
+      ctx.lineTo(cw, ch);
+      ctx.closePath();
+      ctx.fill();
+    };
+    drawPeaks(r.mtn1, ch * 0.68, ch * 0.42, 140, 1.2);
+    drawPeaks(r.mtn2, ch * 0.74, ch * 0.28, 110, 3.1);
+
+    // Meadow & half-timbered Alpine station house
+    const groundY = ch * 0.74;
+    ctx.fillStyle = r.grass;
+    ctx.fillRect(0, groundY, cw, ch - groundY);
+
+    // Station house (left background)
+    const sx = Math.max(14, cw * 0.06);
+    const sy = groundY - 46;
+    ctx.fillStyle = '#fff7ed';
+    ctx.fillRect(sx, sy, 68, 46);
+    ctx.strokeStyle = '#5c3a21';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx, sy, 68, 46);
+    ctx.beginPath(); ctx.moveTo(sx, sy + 22); ctx.lineTo(sx + 68, sy + 22); ctx.moveTo(sx + 34, sy); ctx.lineTo(sx + 34, sy + 46); ctx.stroke();
+    ctx.fillStyle = '#991b1b';
+    ctx.beginPath(); ctx.moveTo(sx - 8, sy + 2); ctx.lineTo(sx + 34, sy - 22); ctx.lineTo(sx + 76, sy + 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(sx + 10, sy + 8, 14, 10);
+    ctx.fillRect(sx + 44, sy + 8, 14, 10);
+
+    // Pine trees
+    for (let i = 0; i < 6; i++) {
+      const tx = cw * (0.22 + i * 0.14);
+      const sway = Math.sin(state.t * 1.8 + i) * 1.5;
+      ctx.fillStyle = '#5c3a21';
+      ctx.fillRect(tx - 2, groundY - 12, 4, 12);
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath();
+      ctx.moveTo(tx + sway, groundY - 42);
+      ctx.lineTo(tx - 13, groundY - 10);
+      ctx.lineTo(tx + 13, groundY - 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Railway tracks & sleepers
+    const railY = ch * 0.83;
+    ctx.fillStyle = '#57534e';
+    ctx.fillRect(0, railY + 2, cw, 12);
+    ctx.fillStyle = '#3f2e21';
+    for (let x = 0; x < cw; x += 22) ctx.fillRect(x, railY + 2, 10, 9);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(0, railY, cw, 3);
+
+    // Overhead yellow steel gantry beam
+    const beamY = Math.max(10, ch * 0.08);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(0, beamY, cw, 9);
+    ctx.fillStyle = '#1e293b';
+    for (let x = 10; x < cw; x += 36) ctx.fillRect(x, beamY + 1, 14, 7);
+
+    // Smoke puffs
+    state.smoke.forEach(s => {
+      ctx.fillStyle = `rgba(255,255,255,${Math.max(0, s.a)})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Train: Flatbed cargo wagon + Steam locomotive
+    const ty = railY;
+    const tx = state.trainX;
+
+    // Flatbed wagon
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(tx - 40, ty - 22, 118, 12);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(tx + 78, ty - 17, 14, 4); // coupler
+
+    // Loaded mini crates on wagon
+    const shownCrates = state.loadedCratesOnWagon.slice(-3);
+    shownCrates.forEach((lbl, idx) => {
+      const bx = tx - 32 + idx * 35;
+      const by = ty - 48;
+      ctx.fillStyle = '#d99b52';
+      ctx.fillRect(bx, by, 32, 26);
+      ctx.strokeStyle = '#5c3312';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, by, 32, 26);
+    });
+
+    // Locomotive body
+    ctx.fillStyle = '#b91c1c';
+    ctx.fillRect(tx + 92, ty - 46, 86, 36);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(tx + 92, ty - 64, 34, 24); // cab
+    ctx.fillStyle = '#fde047';
+    ctx.fillRect(tx + 100, ty - 58, 18, 12); // cab window
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(tx + 158, ty - 68, 14, 22); // chimney
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(tx + 174, ty - 34, 8, 8); // headlamp
+
+    // Wheels
+    const wheelXs = [tx - 20, tx + 55, tx + 110, tx + 140, tx + 166];
+    wheelXs.forEach((wx, i) => {
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath(); ctx.arc(wx, ty - 6, i >= 2 ? 11 : 8, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(wx, ty - 6, i >= 2 ? 6 : 4, 0, Math.PI * 2); ctx.stroke();
+    });
+
+    // Crane trolley + cable + carried crate
+    const cx = cw * state.craneX;
+    const hookY = beamY + 14 + ch * state.cableLen;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(cx - 18, beamY - 2, 36, 15);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, beamY + 13); ctx.lineTo(cx, hookY); ctx.stroke();
+
+    // Claw
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, hookY + 8); ctx.lineTo(cx, hookY); ctx.lineTo(cx + 10, hookY + 8);
+    ctx.stroke();
+
+    // Carried crate during lift/toWagon/drop
+    if (['toWagon', 'drop', 'bounce'].includes(state.cranePhase)) {
+      const boxW = Math.min(126, Math.max(74, state.activeCrateLabel.length * 9 + 20));
+      ctx.fillStyle = state.cranePhase === 'bounce' ? '#ef4444' : '#d99b52';
+      ctx.fillRect(cx - boxW / 2, hookY + 8, boxW, 30);
+      ctx.strokeStyle = '#4a2810';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(cx - boxW / 2, hookY + 8, boxW, 30);
+      ctx.fillStyle = state.cranePhase === 'bounce' ? '#fff' : '#231105';
+      ctx.font = '800 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(state.activeCrateLabel, cx, hookY + 23, boxW - 8);
+    }
+
+    // Sparks
+    state.sparks.forEach(p => {
+      ctx.fillStyle = `rgba(239, 68, 68, ${Math.max(0, p.a)})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  let lastTs = 0;
+  function tick(ts) {
+    const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016);
+    lastTs = ts;
+    updateSim(dt);
+    drawScene();
+    requestAnimationFrame(tick);
+  }
+
+  /* =========================================================
+     9. EVENT BINDINGS & KEYBOARD SHORTCUTS
+  ========================================================= */
+  function bindEvents() {
+    document.querySelectorAll('[data-close]').forEach(el => {
+      el.addEventListener('click', () => closeModal(el.getAttribute('data-close')));
+    });
+
+    document.getElementById('btn-artikel').addEventListener('click', () => {
+      state.showArtikel = !state.showArtikel;
+      renderHUD();
+      renderSignboard();
+    });
+
+    document.getElementById('btn-sound').addEventListener('click', e => {
+      state.soundOn = !state.soundOn;
+      e.currentTarget.classList.toggle('active', state.soundOn);
+      e.currentTarget.innerHTML = `${state.soundOn ? '🔊' : '🔇'} <span class="lbl">${state.soundOn ? 'Sound' : 'Muted'}</span>`;
+    });
+
+    document.getElementById('btn-handbook').addEventListener('click', () => {
+      renderHandbook('poss');
+      openModal('modal-handbook');
+    });
+
+    document.getElementById('btn-routes').addEventListener('click', () => {
+      renderStartModal();
+      openModal('modal-start');
+    });
+
+    document.getElementById('btn-concept-main').addEventListener('click', openConceptGuide);
+    document.getElementById('btn-concept-side').addEventListener('click', openConceptGuide);
+
+    document.getElementById('btn-start-journey').addEventListener('click', () => startJourney(state.selectedRouteId, false));
+    document.getElementById('btn-commute-mix').addEventListener('click', () => startJourney(0, true));
+
+    document.getElementById('btn-fb-next').addEventListener('click', () => {
+      closeModal('modal-feedback');
+      loadNextStop();
+    });
+
+    document.getElementById('btn-replay-route').addEventListener('click', () => startJourney(state.selectedRouteId, state.isCommuteMix));
+    document.getElementById('btn-next-route').addEventListener('click', () => {
+      closeModal('modal-complete');
+      renderStartModal();
+      openModal('modal-start');
+    });
+
+    // Keyboard shortcuts (Laptop / iPad with keyboard)
+    window.addEventListener('keydown', e => {
+      const fbOpen = document.getElementById('modal-feedback').classList.contains('open');
+      const conceptOpen = document.getElementById('modal-concept').classList.contains('open');
+      const startOpen = document.getElementById('modal-start').classList.contains('open');
+
+      if (e.key === 'Escape') {
+        closeModal('modal-concept');
+        closeModal('modal-handbook');
+        if (state.currentQ) closeModal('modal-start');
+        return;
+      }
+      if (fbOpen && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        document.getElementById('btn-fb-next').click();
+        return;
+      }
+      if (conceptOpen && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        closeModal('modal-concept');
+        return;
+      }
+      if (startOpen || fbOpen || conceptOpen) return;
+
+      if (e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        openConceptGuide();
+      } else if (['1', '2', '3', '4'].includes(e.key)) {
+        const idx = Number(e.key) - 1;
+        const btns = document.querySelectorAll('#crate-grid .crate-btn');
+        if (btns[idx] && !btns[idx].disabled) btns[idx].click();
+      }
+    });
+  }
+
+  // Boot
+  resizeCanvas();
+  bindEvents();
+  renderStartModal();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
