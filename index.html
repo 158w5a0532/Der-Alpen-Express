@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Alpen-Express" />
 <title>Der Alpen-Express — Die große Grammatik-Bahn</title>
 <style>
   :root {
@@ -905,7 +908,7 @@
       dat: { m: 'em', f: 'er', n: 'em' }
     };
     const end = endMap[c][g];
-    if (base === 'euer' && end !== '') return 'eur' + end; // euer + e -> eure, euren, eurem, eurer
+    if (base === 'euer' && end !== '') return 'eur' + end;
     return base + end;
   }
 
@@ -927,7 +930,6 @@
   }
 
   // ===== 85 HANDCRAFTED NEBENSATZ QUESTIONS =====
-  // Format: [promptBefore, blankHint, promptAfter, enTrans, correct, [w1,w2,w3], conjTag, wagonParts, whySimple]
   const ROUTE5_Q = [
     ['Er bleibt zu Hause, ___ er krank ist.', 'because', '', 'He stays home because he is sick.', 'weil', ['dass', 'ob', 'bevor'], 'weil', ['weil', 'er', 'krank', 'ist'], 'Use <b>weil</b> (because) to answer "Why?" (Warum?). Notice <b>ist</b> sits at the very end!'],
     ['Ich weiß, ___ Olena später kommt.', 'that', '', 'I know that Olena is coming later.', 'dass', ['das', 'weil', 'ob'], 'dass', ['dass', 'Olena', 'später', 'kommt'], 'Use <b>dass</b> (with double-s) for "that" after verbs like wissen, sagen, denken.'],
@@ -1365,15 +1367,14 @@
     sessionStars: 0,
     usedConceptThisQ: false,
     locked: false,
-    // Canvas animation state
     t: 0,
     trainX: -260,
     trainTargetX: 0,
-    trainMode: 'enter', // enter | idle | depart
+    trainMode: 'enter',
     craneX: 0.5,
     craneTargetX: 0.5,
     cableLen: 0.12,
-    cranePhase: 'idle', // idle | toCrate | lift | toWagon | drop | bounce | reset
+    cranePhase: 'idle',
     activeCrateLabel: '',
     activeCrateOk: true,
     pendingResult: null,
@@ -1388,28 +1389,34 @@
   let audioCtx = null;
   function ensureAudio() {
     if (!state.soundOn) return null;
-    if (!audioCtx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) audioCtx = new AC();
+    try {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    } catch {
+      return null;
     }
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    return audioCtx;
   }
 
   function playTone(freq, dur, type = 'sine', gainVal = 0.08, delay = 0) {
     const ctx = ensureAudio();
     if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
-    g.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
-    g.gain.exponentialRampToValueAtTime(gainVal, ctx.currentTime + delay + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + dur);
-    osc.connect(g);
-    g.connect(ctx.destination);
-    osc.start(ctx.currentTime + delay);
-    osc.stop(ctx.currentTime + delay + dur + 0.02);
+    try {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+      g.gain.exponentialRampToValueAtTime(gainVal, ctx.currentTime + delay + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + dur);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + dur + 0.02);
+    } catch {}
   }
 
   function sfxOk() { playTone(523.25, 0.14, 'triangle', 0.09, 0); playTone(659.25, 0.16, 'triangle', 0.09, 0.09); playTone(783.99, 0.24, 'triangle', 0.1, 0.18); }
@@ -1418,28 +1425,32 @@
   function sfxPuff() {
     const ctx = ensureAudio();
     if (!ctx) return;
-    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 600;
-    const g = ctx.createGain();
-    g.gain.value = 0.04;
-    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
-    src.start();
+    try {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 600;
+      const g = ctx.createGain();
+      g.gain.value = 0.04;
+      src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+      src.start();
+    } catch {}
   }
 
   function speakGerman(text) {
     if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const clean = text.replace(/„|“|→/g, ' ').replace(/\s+/g, ' ').trim();
-    const u = new SpeechSynthesisUtterance(clean);
-    u.lang = 'de-DE';
-    u.rate = state.slowSpeech ? 0.72 : 0.94;
-    window.speechSynthesis.speak(u);
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/„|“|→/g, ' ').replace(/\s+/g, ' ').trim();
+      const u = new SpeechSynthesisUtterance(clean);
+      u.lang = 'de-DE';
+      u.rate = state.slowSpeech ? 0.72 : 0.94;
+      window.speechSynthesis.speak(u);
+    } catch {}
   }
 
   /* =========================================================
@@ -1454,7 +1465,6 @@
     if (routeId >= 4 && routeId <= 6) {
       return shuffle(HANDCRAFTED_POOLS[routeId]).slice(0, route.target);
     }
-    // Route 8: 7 handcrafted perspective + 3 mixed from all topics
     const p8 = shuffle(HANDCRAFTED_POOLS[7]).slice(0, 7);
     const mix = [genRoute1(), genRoute2(), rand(HANDCRAFTED_POOLS[4])];
     return shuffle([...p8, ...mix]);
@@ -1462,7 +1472,6 @@
 
   function buildCommuteMix() {
     const qList = [];
-    // Pull saved weak spots first if matching handcrafted pools
     const allHandcrafted = [...HANDCRAFTED_POOLS[4], ...HANDCRAFTED_POOLS[5], ...HANDCRAFTED_POOLS[6], ...HANDCRAFTED_POOLS[7]];
     for (const wid of state.passport.weakSpots.slice(0, 4)) {
       const found = allHandcrafted.find(x => x.id === wid);
@@ -1553,7 +1562,6 @@
     document.querySelectorAll('.crate-btn').forEach(b => b.disabled = true);
     btnEl.classList.add(isOk ? 'picked-ok' : 'picked-err');
 
-    // Start crane pickup choreography
     state.activeCrateLabel = choice;
     state.activeCrateOk = isOk;
     state.pendingResult = { q, choice, isOk };
@@ -1568,12 +1576,10 @@
         state.sessionStars++;
         state.passport.soloStars++;
       }
-      // Remove from weakSpots if mastered
       state.passport.weakSpots = state.passport.weakSpots.filter(id => id !== q.id);
       savePassport();
     } else {
       sfxErr();
-      // Record weak spot & re-queue 2 stops later
       if (!state.passport.weakSpots.includes(q.id)) {
         state.passport.weakSpots.unshift(q.id);
         if (state.passport.weakSpots.length > 25) state.passport.weakSpots.pop();
@@ -1797,18 +1803,15 @@
       }
     }
 
-    // Smoke puffs from chimney
     if (Math.random() < dt * 4.5) {
       state.smoke.push({ x: state.trainX + 168, y: ch * 0.62 - 42, r: 5, a: 0.75, vx: -14 - Math.random() * 10, vy: -22 - Math.random() * 12 });
     }
     state.smoke.forEach(s => { s.x += s.vx * dt; s.y += s.vy * dt; s.r += 10 * dt; s.a -= 0.42 * dt; });
     state.smoke = state.smoke.filter(s => s.a > 0.02);
 
-    // Sparks on wrong crate bounce
     state.sparks.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.a -= 1.6 * dt; });
     state.sparks = state.sparks.filter(p => p.a > 0);
 
-    // Gantry crane animation
     const speed = 1.6;
     if (state.cranePhase === 'toCrate') {
       const diff = state.craneTargetX - state.craneX;
@@ -1852,20 +1855,17 @@
 
   function drawScene() {
     const r = ROUTES[state.selectedRouteId] || ROUTES[0];
-    // Sky gradient
     const sky = ctx.createLinearGradient(0, 0, 0, ch);
     sky.addColorStop(0, r.sky[0]);
     sky.addColorStop(1, r.sky[1]);
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, cw, ch);
 
-    // Sun
     ctx.fillStyle = 'rgba(255, 245, 180, 0.35)';
     ctx.beginPath(); ctx.arc(cw * 0.86, ch * 0.22, 34, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#fef08a';
     ctx.beginPath(); ctx.arc(cw * 0.86, ch * 0.22, 22, 0, Math.PI * 2); ctx.fill();
 
-    // Clouds
     ctx.fillStyle = 'rgba(255,255,255,0.82)';
     for (let i = 0; i < 3; i++) {
       const cx = ((state.t * (10 + i * 4) + i * 240) % (cw + 120)) - 60;
@@ -1877,7 +1877,6 @@
       ctx.fill();
     }
 
-    // Distant & near Alpine mountains
     const drawPeaks = (color, baseY, amp, step, offset) => {
       ctx.fillStyle = color;
       ctx.beginPath();
@@ -1894,12 +1893,10 @@
     drawPeaks(r.mtn1, ch * 0.68, ch * 0.42, 140, 1.2);
     drawPeaks(r.mtn2, ch * 0.74, ch * 0.28, 110, 3.1);
 
-    // Meadow & half-timbered Alpine station house
     const groundY = ch * 0.74;
     ctx.fillStyle = r.grass;
     ctx.fillRect(0, groundY, cw, ch - groundY);
 
-    // Station house (left background)
     const sx = Math.max(14, cw * 0.06);
     const sy = groundY - 46;
     ctx.fillStyle = '#fff7ed';
@@ -1914,7 +1911,6 @@
     ctx.fillRect(sx + 10, sy + 8, 14, 10);
     ctx.fillRect(sx + 44, sy + 8, 14, 10);
 
-    // Pine trees
     for (let i = 0; i < 6; i++) {
       const tx = cw * (0.22 + i * 0.14);
       const sway = Math.sin(state.t * 1.8 + i) * 1.5;
@@ -1929,7 +1925,6 @@
       ctx.fill();
     }
 
-    // Railway tracks & sleepers
     const railY = ch * 0.83;
     ctx.fillStyle = '#57534e';
     ctx.fillRect(0, railY + 2, cw, 12);
@@ -1938,30 +1933,25 @@
     ctx.fillStyle = '#cbd5e1';
     ctx.fillRect(0, railY, cw, 3);
 
-    // Overhead yellow steel gantry beam
     const beamY = Math.max(10, ch * 0.08);
     ctx.fillStyle = '#f59e0b';
     ctx.fillRect(0, beamY, cw, 9);
     ctx.fillStyle = '#1e293b';
     for (let x = 10; x < cw; x += 36) ctx.fillRect(x, beamY + 1, 14, 7);
 
-    // Smoke puffs
     state.smoke.forEach(s => {
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, s.a)})`;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
     });
 
-    // Train: Flatbed cargo wagon + Steam locomotive
     const ty = railY;
     const tx = state.trainX;
 
-    // Flatbed wagon
     ctx.fillStyle = '#475569';
     ctx.fillRect(tx - 40, ty - 22, 118, 12);
     ctx.fillStyle = '#94a3b8';
-    ctx.fillRect(tx + 78, ty - 17, 14, 4); // coupler
+    ctx.fillRect(tx + 78, ty - 17, 14, 4);
 
-    // Loaded mini crates on wagon
     const shownCrates = state.loadedCratesOnWagon.slice(-3);
     shownCrates.forEach((lbl, idx) => {
       const bx = tx - 32 + idx * 35;
@@ -1973,19 +1963,17 @@
       ctx.strokeRect(bx, by, 32, 26);
     });
 
-    // Locomotive body
     ctx.fillStyle = '#b91c1c';
     ctx.fillRect(tx + 92, ty - 46, 86, 36);
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(tx + 92, ty - 64, 34, 24); // cab
+    ctx.fillRect(tx + 92, ty - 64, 34, 24);
     ctx.fillStyle = '#fde047';
-    ctx.fillRect(tx + 100, ty - 58, 18, 12); // cab window
+    ctx.fillRect(tx + 100, ty - 58, 18, 12);
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(tx + 158, ty - 68, 14, 22); // chimney
+    ctx.fillRect(tx + 158, ty - 68, 14, 22);
     ctx.fillStyle = '#f59e0b';
-    ctx.fillRect(tx + 174, ty - 34, 8, 8); // headlamp
+    ctx.fillRect(tx + 174, ty - 34, 8, 8);
 
-    // Wheels
     const wheelXs = [tx - 20, tx + 55, tx + 110, tx + 140, tx + 166];
     wheelXs.forEach((wx, i) => {
       ctx.fillStyle = '#1e293b';
@@ -1995,7 +1983,6 @@
       ctx.beginPath(); ctx.arc(wx, ty - 6, i >= 2 ? 6 : 4, 0, Math.PI * 2); ctx.stroke();
     });
 
-    // Crane trolley + cable + carried crate
     const cx = cw * state.craneX;
     const hookY = beamY + 14 + ch * state.cableLen;
     ctx.fillStyle = '#0f172a';
@@ -2004,14 +1991,12 @@
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(cx, beamY + 13); ctx.lineTo(cx, hookY); ctx.stroke();
 
-    // Claw
     ctx.strokeStyle = '#f59e0b';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(cx - 10, hookY + 8); ctx.lineTo(cx, hookY); ctx.lineTo(cx + 10, hookY + 8);
     ctx.stroke();
 
-    // Carried crate during lift/toWagon/drop
     if (['toWagon', 'drop', 'bounce'].includes(state.cranePhase)) {
       const boxW = Math.min(126, Math.max(74, state.activeCrateLabel.length * 9 + 20));
       ctx.fillStyle = state.cranePhase === 'bounce' ? '#ef4444' : '#d99b52';
@@ -2026,7 +2011,6 @@
       ctx.fillText(state.activeCrateLabel, cx, hookY + 23, boxW - 8);
     }
 
-    // Sparks
     state.sparks.forEach(p => {
       ctx.fillStyle = `rgba(239, 68, 68, ${Math.max(0, p.a)})`;
       ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
@@ -2047,7 +2031,13 @@
   ========================================================= */
   function bindEvents() {
     document.querySelectorAll('[data-close]').forEach(el => {
-      el.addEventListener('click', () => closeModal(el.getAttribute('data-close')));
+      el.addEventListener('click', () => {
+        const id = el.getAttribute('data-close');
+        closeModal(id);
+        if (id === 'modal-start' && !state.currentQ) {
+          startJourney(state.selectedRouteId, false);
+        }
+      });
     });
 
     document.getElementById('btn-artikel').addEventListener('click', () => {
@@ -2090,7 +2080,6 @@
       openModal('modal-start');
     });
 
-    // Keyboard shortcuts (Laptop / iPad with keyboard)
     window.addEventListener('keydown', e => {
       const fbOpen = document.getElementById('modal-feedback').classList.contains('open');
       const conceptOpen = document.getElementById('modal-concept').classList.contains('open');
@@ -2131,6 +2120,13 @@
   renderStartModal();
   requestAnimationFrame(tick);
 })();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
